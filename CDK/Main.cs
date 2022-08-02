@@ -25,20 +25,9 @@ namespace CDK
         protected override void Load()
         {
             Instance = this;  
-            //if(!Configuration.Instance.MySQLSupport)
-            //{
-            //    DirectoryInfo info = new DirectoryInfo(Assembly.Location);
-            //    if (!File.Exists(info.Parent + "\\CDK\\Redeem.log"))
-            //    {
-            //        File.CreateText(info.Parent + "\\CDK\\Redeem.log");
-            //    }
-            //}
-            //else
-            //{
+            
                 Database = new DatabaseManager();
                 U.Events.OnPlayerConnected += PlayerConnect;
-            //}
-            
             Rocket.Core.Logging.Logger.Log("CDK Plugin loaded");
         }
 
@@ -354,17 +343,14 @@ namespace CDK
                 {"permission_duplicate_entry","You already in permission group:{0}." },
                 {"permission_granted","You are added permission group: {0}" },
                 {"permission_grant_error","Failed to add permission group" },
-                //{"reset_count","reset key {0}'s maxcount!" },
                 {"uconomy_gain","You got {0} {1}" },
                 {"error","error!" },
-                //{"cdk_created","You created CDK: {0}" },
-                //{"create_cdk_exist","This CDK already created! " },
-                //{"cdk_create_failure","Failed to create cdk.please check command syntax!" },
                 {"invaild_parameter","out of patamter! correct syntax:{0}"},
                 {"key_renewed","Your key has been renewed!" },
                 {"key_expired","Your key has been expired:{0}" },
                 {"already_purchased","You already purchased this permission group" },
-                {"invaild_param",""}
+                {"invaild_param","Wrong usage.usage:{0}"},
+                {"player_not_match","This CDK not belong to you!" }
             };
     }
 }

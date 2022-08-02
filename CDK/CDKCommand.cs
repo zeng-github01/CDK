@@ -26,33 +26,6 @@ namespace CDK
 
         public void Execute(IRocketPlayer caller,string[] args)
         {
-            //if (!Main.Instance.Configuration.Instance.MySQLSupport)
-            //{
-            //    if (args.Length == 1)
-            //    {
-            //        Main.Instance.CDKRedeem(UnturnedPlayer.FromName(caller.DisplayName), args[0]);
-            //    }
-            //    else if (args.Length == 2 && args[0].ToLower() == "reset")
-            //    {
-            //        if (caller.HasPermission("cdk.reset"))
-            //        {
-            //            if (Main.Instance.ResetKeyCount(args[1]))
-            //            {
-            //                UnturnedChat.Say(caller, Main.Instance.Translate("reset_count"));
-            //            }
-            //            else
-            //            {
-            //                UnturnedChat.Say(caller, Main.Instance.Translate("key_dones't_exist"), UnityEngine.Color.red);
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        UnturnedChat.Say(caller, Main.Instance.Translate("invaild_param"), UnityEngine.Color.red);
-            //    }
-            //}
-            //else if(Main.Instance.Configuration.Instance.MySQLSupport)
-            //{
             if(args.Length == 1)
               {
                 if (!Main.Instance.Database.IsPurchased(UnturnedPlayer.FromName(caller.DisplayName), args[0]))
@@ -89,7 +62,7 @@ namespace CDK
              }
             else
             {
-                UnturnedChat.Say(caller, Main.Instance.Translate("invaild_param"), UnityEngine.Color.red);
+                UnturnedChat.Say(caller, Main.Instance.Translate("invaild_param",Syntax), UnityEngine.Color.red);
             }
         }
     }

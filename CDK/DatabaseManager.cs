@@ -136,7 +136,7 @@ namespace CDK
         public void CheckValid(UnturnedPlayer player)
         {
             LogData logData = GetLogData(player.CSteamID,ELogQueryType.ByTime);
-            if (logData != null)
+            if (logData != null && logData.GrantPermissionGroup != string.Empty)
             {
                 do
                 {
@@ -161,7 +161,7 @@ namespace CDK
         private LogData BuildLogData(MySqlDataReader reader)
         {
             //Logger.LogWarning("Start Building LogData");
-            return new LogData(reader.GetString("CDK"), (CSteamID)reader.GetUInt64("SteamID"), reader.GetDateTime("Redeemed Time"), reader.GetDateTime("ValidUntil"),reader.GetString("GrantPermissionGroup"));
+            return new LogData(reader.GetString(0), (CSteamID)reader.GetUInt64(1), reader.GetDateTime(2), reader.GetDateTime(3),reader.GetString(4));
         }
 
         public CDKData GetCDKData(string cdk)
@@ -214,7 +214,7 @@ namespace CDK
                         break;
                     case ELogQueryType.ByTime:
                         command.Parameters.AddWithValue("@steamid", steamID);
-                        command.CommandText = $"select 1 from `{ Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @steamid  and `ValidUntil` < now();";
+                        command.CommandText = $"select * from `{ Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @steamid  and `ValidUntil` < now() LIMIT 1;";
                         break;
                 }
                 connection.Open();
@@ -300,74 +300,6 @@ namespace CDK
                 ExecuteQuery(false,
                     $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (`CDK` varchar(32) NOT NULL, `SteamID` varchar(32) NOT NULL, `Redeemed Time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `ValidUntil` datetime(6) NOT NULL, `GrantPermissionGroup` VARCHAR(32) NOT NULL DEFAULT '{string.Empty}')");
 
-            //if (Main.Instance.Configuration.Instance.MySQLTableVer == 1)
-            //{
-            //    Logger.Log("Updating database table version to 2.");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` ADD `ValidUntil` timestamp;");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` ADD `EnableRenew` int(1) DEFAULT '0';");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` ADD `ValidUntil` timestamp DEFAULT NULL;");
-            //    Main.Instance.Configuration.Instance.MySQLTableVer = 2;
-            //    Main.Instance.Configuration.Save();
-            //}
-            //if (Main.Instance.Configuration.Instance.MySQLTableVer == 2)
-            //{
-            //    Logger.Log("Updating database table version to 3.");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` ADD `Owner` varchar(32);");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` ADD `Reputation` int(32) AFTER `Experience`;");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Items` varchar(32);");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `GrantPermissionGroup` varchar(32);");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Vehicle` int(16);");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Experience` int(32);");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Money` decimal(15,2);");
-            //    ExecuteQuery(false, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `MaxRedeem` int(32);");
-            //    Main.Instance.Configuration.Instance.MySQLTableVer = 3;
-            //    Main.Instance.Configuration.Save();
-            //}
-            //if (Main.Instance.Configuration.Instance.MySQLTableVer == 3)
-            //{
-            //    Logger.Log("Updating database table version to 4");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `EnableRenew` BOOLEAN DEFALT '0'");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` ADD `Amount` varchar(32) AFTER `Items`");
-            //    Main.Instance.Configuration.Instance.MySQLTableVer = 4;
-            //    Main.Instance.Configuration.Save();
-            //}
-            //if (Main.Instance.Configuration.Instance.MySQLTableVer == 4)
-            //{
-            //    Logger.Log("Updating database table version to 5");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` DROP PRIMARY KEY ");
-            //    Main.Instance.Configuration.Instance.MySQLTableVer = 5;
-            //    Main.Instance.Configuration.Save();
-            //}
-            //if(Main.Instance.Configuration.Instance.MySQLTableVer == 5)
-            //{
-            //    Logger.Log("Updating database table version to 6");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` ADD `GrantPermissionGroup` VARCHAR(32)");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `EnableRenew` BOOLEAN NOT NULL DEFAULT '0'");
-            //    Main.Instance.Configuration.Instance.MySQLTableVer = 6;
-            //    Main.Instance.Configuration.Save();
-            //}
-            //if(Main.Instance.Configuration.Instance.MySQLTableVer == 6)
-            //{
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `EnableRenew` BOOLEAN NOT NULL DEFAULT '0'");
-            //    Main.Instance.Configuration.Instance.MySQLTableVer = 7;
-            //    Main.Instance.Configuration.Save();
-            //}
-            //if(Main.Instance.Configuration.Instance.MySQLTableVer == 6)
-            //{
-            //    Logger.Log("Updating database table version to 7");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Items` VARCHAR(32) NOT NULL DEFAULT '';") ;
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Amount` VARCHAR(32) NOT NULL DEFAULT '';");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Vehicle` INT NOT NULL DEFAULT '0';");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Experience` INT NOT NULL DEFAULT '0';");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Money` DECIMAL(15,2) NOT NULL DEFAULT '0';");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `GrantPermissionGroup` VARCHAR(32) NOT NULL DEFAULT '';");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `MaxRedeem` INT NOT NULL DEFAULT '1';");
-            //    //ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `ValidUntil` DATETIME NOT NULL DEFAULT '{DateTime.MaxValue}';");
-            //    ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Owner` VARCHAR(32) NOT NULL DEFAULT '';");
-            //    Main.Instance.Configuration.Instance.MySQLTableVer = 7;
-            //    Main.Instance.Configuration.Save();
-            //}
-
         }
 
         private MySqlConnection CreateConnection()
@@ -430,69 +362,3 @@ namespace CDK
         }
     }
 }
-
-
-//CSteamID init = CSteamID.Nil;
-//if(ulong.TryParse(reader.GetString("Owner"),out ulong SteamID))
-//{
-//    init = new CSteamID(SteamID);
-//    //reader.GetValue()
-//}
-//Logger.LogWarning("Start Building CDKData");
-//return new CDKData(reader.GetString("CDK"), reader.GetString("Items"), reader.GetString("Amount"), reader.GetUInt16("Vehicle"), reader.GetUInt16("Experience"), reader.GetDecimal("Money"), reader.GetInt32("Reputation"), reader.GetString("GrantPermissionGroup"), reader.GetInt32("RedeemedTimes"), reader.GetInt32("MaxRedeem"),reader.GetDateTime("ValidUntil"),init, reader.GetBoolean("EnableRenew"));
-//var CDK = reader.GetValue(0);
-
-////string cdk_v = string.Empty;
-//string items_v = string.Empty;
-//string amount_v = string.Empty;
-//decimal? money_v = null;
-//ushort? vehicle_v = null;
-//ushort? exp_v = null;
-//int? reputation_v = null;
-//string permissionstring = string.Empty;
-//int? maxredeem_v = null;
-//CSteamID cSteam = CSteamID.Nil;
-////int redeemedtimes_v =0
-//DateTime validuntil_v = DateTime.MaxValue;
-//if (!Convert.IsDBNull(Items))
-//{
-//    items_v = Convert.ToString(Items);
-//}
-//if (!Convert.IsDBNull(Amount))
-//{
-//    amount_v = Convert.ToString(Amount);
-//}
-//if (!Convert.IsDBNull(Experience))
-//{
-//    exp_v = Convert.ToUInt16(Experience);
-//}
-//if (!Convert.IsDBNull(Reputation))
-//{
-//    reputation_v = Convert.ToInt32(Reputation);
-//}
-//if (!Convert.IsDBNull(Vehicle))
-//{
-//    vehicle_v = Convert.ToUInt16(Vehicle);
-//}
-//if (!Convert.IsDBNull(Money))
-//{
-//    money_v = Convert.ToDecimal(Money);
-//}
-//if (!Convert.IsDBNull(GrantPermissionGroup))
-//{
-//    permissionstring = Convert.ToString(GrantPermissionGroup);
-//}
-//if (!Convert.IsDBNull(MaxRedeem))
-//{
-//    maxredeem_v = Convert.ToInt32(MaxRedeem);
-//}
-//if (!Convert.IsDBNull(ValidUntil))
-//{
-//    validuntil_v = Convert.ToDateTime(ValidUntil);
-//}
-//if (!Convert.IsDBNull(Owner))
-//{
-//    cSteam = new CSteamID(Convert.ToUInt64(Owner));
-//}
-
-//return new CDKData(reader.GetString("CDK"), items_v, amount_v, vehicle_v, exp_v, money_v, reputation_v, permissionstring, reader.GetInt32("RedeemedTimes"), maxredeem_v, validuntil_v, cSteam, reader.GetBoolean("EnableRenew"));
