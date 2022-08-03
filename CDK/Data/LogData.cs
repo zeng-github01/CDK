@@ -15,13 +15,16 @@ namespace CDK.Data
         public DateTime ValidUntil { get; internal set; }
         public string GrantPermissionGroup { get; internal set; }
 
-        public LogData(string cdk,CSteamID steamID,DateTime redeemtime,DateTime validtime,string PermissionGroup)
+        public bool UsePermissionSync { get; internal set; }
+
+        public LogData(string cdk,CSteamID steamID, DateTime redeemtime, DateTime validtime, string PermissionGroup, bool usePermissionSync)
         {
             CDK = cdk;
             SteamID = steamID;
             RedeemTime = redeemtime;
             ValidUntil = validtime;
             GrantPermissionGroup = PermissionGroup;
+            UsePermissionSync = usePermissionSync;
         }
     }
 }

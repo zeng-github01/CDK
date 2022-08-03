@@ -15,6 +15,7 @@ using Steamworks;
 //using UnityEngine;
 using Rocket.Core.Plugins;
 using CDK.Enum;
+using PermissionSync;
 
 namespace CDK
 {
@@ -93,7 +94,7 @@ namespace CDK
                             });
                         }
 
-                        if (cdkdata.GrantPermissionGroup != string.Empty)
+                        if (cdkdata.GrantPermissionGroup != string.Empty && !cdkdata.UsePermissionSync)
                         {
                             switch (R.Permissions.AddPlayerToGroup(cdkdata.GrantPermissionGroup, player))
                             {
@@ -108,17 +109,33 @@ namespace CDK
                                     break;
                             }
                         }
+                        if (cdkdata.GrantPermissionGroup != string.Empty && cdkdata.UsePermissionSync)
+                        {
+                            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin plugin) =>
+                            {
+                                PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
+                            });
+                        }
 
-                        SaveLogToDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil,cdkdata.GrantPermissionGroup));
+                        SaveLogToDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil,cdkdata.GrantPermissionGroup,cdkdata.UsePermissionSync));
                         IncreaseRedeemedTime(CDK);
                         return RedeemCDKResult.Success;
                     }
                     else if (logdata != null && cdkdata.Renew)
                     {
-                        R.Permissions.AddPlayerToGroup(cdkdata.GrantPermissionGroup, player);
-                        UpdateLogInDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil, cdkdata.GrantPermissionGroup));
-                        UpdateRenew(CDK);
-                        return RedeemCDKResult.Renewed;
+                        if (!cdkdata.UsePermissionSync)
+                        {
+                            R.Permissions.AddPlayerToGroup(cdkdata.GrantPermissionGroup, player);
+                            UpdateLogInDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil, cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
+                            UpdateRenew(CDK);
+                            return RedeemCDKResult.Renewed;
+                        }
+                        else
+                        {
+                            PermissionSync.Main.Instance.databese.UpdatePermission(player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
+                            UpdateLogInDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil, cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
+                            UpdateRenew(CDK);
+                        }
                     }
                 }
                 else
@@ -156,12 +173,12 @@ namespace CDK
             {
                 owner = new CSteamID(Convert.ToUInt64(cid));
             }
-            return new CDKData(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetUInt16(3), reader.GetUInt16(4), reader.GetDecimal(6), reader.GetInt32(5), reader.GetString(7), reader.GetInt32(9), reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11));
+            return new CDKData(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetUInt16(3), reader.GetUInt16(4), reader.GetDecimal(6), reader.GetInt32(5), reader.GetString(7), reader.GetInt32(9), reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11),reader.GetBoolean(12));
         }
         private LogData BuildLogData(MySqlDataReader reader)
         {
             //Logger.LogWarning("Start Building LogData");
-            return new LogData(reader.GetString(0), (CSteamID)reader.GetUInt64(1), reader.GetDateTime(2), reader.GetDateTime(3),reader.GetString(4));
+            return new LogData(reader.GetString(0), (CSteamID)reader.GetUInt64(1), reader.GetDateTime(2), reader.GetDateTime(3),reader.GetString(4),reader.GetBoolean(5));
         }
 
         public CDKData GetCDKData(string cdk)
@@ -238,12 +255,12 @@ namespace CDK
 
         internal void SaveLogToDB(LogData logData)
         {
-            ExecuteQuery(true, $"INSERT INTO `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (CDK,SteamID,`Redeemed Time`,ValidUntil,GrantPermissionGroup) VALUES('{logData.CDK}','{logData.SteamID}','{logData.RedeemTime}','{logData.ValidUntil}','{logData.GrantPermissionGroup}')");
+            ExecuteQuery(true, $"INSERT INTO `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (CDK,SteamID,`Redeemed Time`,ValidUntil,GrantPermissionGroup,UsePermissionSync) VALUES('{logData.CDK}','{logData.SteamID}','{logData.RedeemTime}','{logData.ValidUntil}','{logData.GrantPermissionGroup}','{logData.UsePermissionSync}')");
         }
 
         internal void UpdateLogInDB(LogData logData)
         {
-            ExecuteQuery(true, $"UPDATE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` SET `ValidUntil` = '{logData.ValidUntil}',`Redeemed Time` = {logData.RedeemTime} WHERE `SteamID` = '{logData.SteamID}' AND `CDK` = '{logData.CDK}'");
+            ExecuteQuery(true, $"UPDATE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` SET `ValidUntil` = '{logData.ValidUntil}',`Redeemed Time` = '{logData.RedeemTime}',`UsePermissionSync` = '{logData.UsePermissionSync}' WHERE `SteamID` = '{logData.SteamID}' AND `CDK` = '{logData.CDK}'");
         }
         internal void UpdateRenew(string cdk)
         {
@@ -258,16 +275,6 @@ namespace CDK
         public bool IsPurchased(UnturnedPlayer player, string CDK) //check player if is first purchase
         {
             bool result = false;
-            //var PermissionGroup = ExecuteQuery(true, $"select `GrantPermissionGroup` from `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` where `CDK` = '{CDK}';");
-            //var search = ExecuteQuery(true, $"select 1 from {Main.Instance.Configuration.Instance.DatabaseCDKTableName} where `GrantPermissionGroup` = '{PermissionGroup}' and `Owner` = '{player.Id}';");
-            //if (search == null)
-            //{
-            //    result = false;
-            //}
-            //else
-            //{
-            //    result = true;
-            //}
             var CdkData = GetCDKData(CDK);
             if (CdkData != null)
             {
@@ -291,7 +298,7 @@ namespace CDK
 
             if (cdk == null)
                 ExecuteQuery(false,
-                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` (`CDK` varchar(32) NOT NULL,`Items` varchar(32) NOT NULL Default '0', `Amount` varchar(32) NOT NULL DEFAULT '0', `Vehicle` int(16) NOT NULL DEFAULT '0', `Experience` int(32) NOT NULL DEFAULT '0', `Reputation` int NOT NULL DEFAULT '0' , `Money` decimal(16,2) NOT NULL DEFAULT '0', `GrantPermissionGroup` varchar(32) NOT NULL DEFAULT '' , `MaxRedeem` int(32) NOT NULL DEFAULT '1', `RedeemedTimes` int(6) NOT NULL DEFAULT '0', `ValidUntil` datetime(6) NOT NULL DEFAULT '{DateTime.MaxValue}', `EnableRenew` BOOLEAN NOT NULL DEFAULT '0', `Owner` varchar(32) NOT NULL DEFAULT '' ,PRIMARY KEY (`CDK`))");
+                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` (`CDK` varchar(32) NOT NULL,`Items` varchar(32) NOT NULL Default '0', `Amount` varchar(32) NOT NULL DEFAULT '0', `Vehicle` int(16) NOT NULL DEFAULT '0', `Experience` int(32) NOT NULL DEFAULT '0', `Reputation` int NOT NULL DEFAULT '0' , `Money` decimal(16,2) NOT NULL DEFAULT '0', `GrantPermissionGroup` varchar(32) NOT NULL DEFAULT '' , `MaxRedeem` int(32) NOT NULL DEFAULT '1', `RedeemedTimes` int(6) NOT NULL DEFAULT '0', `ValidUntil` datetime(6) NOT NULL DEFAULT '{DateTime.MaxValue}', `EnableRenew` BOOLEAN NOT NULL DEFAULT '0', `Owner` varchar(32) NOT NULL DEFAULT '' , `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0',PRIMARY KEY (`CDK`))");
 
             var log = ExecuteQuery(true,
                $"show tables like '{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}'");
@@ -299,7 +306,15 @@ namespace CDK
             if (log == null)
                 ExecuteQuery(false,
                     $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (`CDK` varchar(32) NOT NULL, `SteamID` varchar(32) NOT NULL, `Redeemed Time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `ValidUntil` datetime(6) NOT NULL, `GrantPermissionGroup` VARCHAR(32) NOT NULL DEFAULT '{string.Empty}')");
-
+            if(Main.Instance.Configuration.Instance.MySQLTableVer == 1)
+            {
+                ExecuteQuery(true,
+                    $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` ADD `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0'");
+                ExecuteQuery(true,
+                    $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` ADD `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0'");
+                Main.Instance.Configuration.Instance.MySQLTableVer = 2;
+                Main.Instance.Configuration.Save();
+            }
         }
 
         private MySqlConnection CreateConnection()
