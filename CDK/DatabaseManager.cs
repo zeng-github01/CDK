@@ -156,7 +156,7 @@ namespace CDK
             {
                 owner = new CSteamID(Convert.ToUInt64(cid));
             }
-            return new CDKData(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetUInt16(3), reader.GetUInt16(4), reader.GetDecimal(5), reader.GetInt32(6), reader.GetString(7), reader.GetInt32(9), reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11));
+            return new CDKData(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetUInt16(3), reader.GetUInt16(4), reader.GetDecimal(6), reader.GetInt32(5), reader.GetString(7), reader.GetInt32(9), reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11));
         }
         private LogData BuildLogData(MySqlDataReader reader)
         {
