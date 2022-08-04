@@ -179,7 +179,7 @@ namespace CDK
         private LogData BuildLogData(MySqlDataReader reader)
         {
             //Logger.LogWarning("Start Building LogData");
-            return new LogData(reader.GetString(0), (CSteamID)reader.GetUInt64(1), reader.GetDateTime(2), reader.GetDateTime(3),reader.GetString(4),reader.GetBoolean(5));
+            return new LogData(reader.GetString(0), new CSteamID(Convert.ToUInt64(reader.GetUInt64(1))), reader.GetDateTime(2), reader.GetDateTime(3),reader.GetString(4),reader.GetBoolean(5));
         }
 
         public CDKData GetCDKData(string cdk)
@@ -325,7 +325,7 @@ namespace CDK
 
             if (log == null)
                 ExecuteQuery(false,
-                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (`CDK` varchar(32) NOT NULL, `SteamID` varchar(32) NOT NULL, `Redeemed Time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `ValidUntil` datetime(6) NOT NULL, `GrantPermissionGroup` VARCHAR(32) NOT NULL DEFAULT '{string.Empty}')");
+                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (`CDK` varchar(32) NOT NULL, `SteamID` varchar(32) NOT NULL, `Redeemed Time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `ValidUntil` datetime(6) NOT NULL, `GrantPermissionGroup` VARCHAR(32) NOT NULL DEFAULT '{string.Empty}', `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0')");
             if(Main.Instance.Configuration.Instance.MySQLTableVer == 1)
             {
                 ExecuteQuery(true,
