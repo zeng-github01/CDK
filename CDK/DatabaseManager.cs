@@ -76,7 +76,8 @@ namespace CDK
                         }
                         if (cdkdata.Reputation != 0)
                         {
-                            player.Reputation += cdkdata.Reputation.Value;
+                            //UnturnedChat.Say(player, "[DEBUG]EXP:" + cdkdata.Reputation);
+                            player.Player.skills.askRep(cdkdata.Reputation.Value);
                         }
                         if (cdkdata.Experience != 0)
                         {
