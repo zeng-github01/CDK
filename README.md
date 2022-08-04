@@ -17,9 +17,9 @@ method 2 Items:263. Amount:3 => item 253x3
 Give Permission<br>
 
 GrantPermissionGroup:vip<br> 
-ValidUntil:use Navicat to modify it.It determines the validity period of the permission group
-tip1: Permission Group ID,NOT DisplayName
-tip2:change "UsePermissionSync" to 1,
+ValidUntil:use Navicat to modify it.It determines the validity period of the permission group<br>
+tip1: Permission Group ID,NOT DisplayName<br>
+tip2:change "UsePermissionSync" to 1<br>
 it can let my another plugin "PermissionSync" to manager permission to give<br>
 
 change EnableRenew to 1.it can Enables CDK to be redeemed twice to extend the validity period of the permission group<br>
