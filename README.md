@@ -4,7 +4,7 @@ A Unturned Rocket Plugin about CDKey. Support MySQL
 # Permssion
 Command:CDK Permission CDK
 
-#Database editor
+# Database editor
 Give Items<br>
 Items id,id,id ----one by one<br>
 Amount number,number,number ---one by one<br> 
