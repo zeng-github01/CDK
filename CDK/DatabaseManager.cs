@@ -154,7 +154,7 @@ namespace CDK
         public void CheckValid(UnturnedPlayer player)
         {
             LogData logData = GetLogData(player.CSteamID,ELogQueryType.ByTime);
-            if (logData != null && logData.GrantPermissionGroup != string.Empty)
+            if (logData != null && logData.GrantPermissionGroup != string.Empty && !logData.UsePermissionSync)
             {
                 do
                 {
