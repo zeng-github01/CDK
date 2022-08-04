@@ -188,8 +188,8 @@ namespace CDK
             try
             {
                 MySqlCommand command = connection.CreateCommand();
-                //command.Parameters.AddWithValue("@CDK", cdk);
-                command.CommandText = $"SELECT * from `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` where `CDK` = '{cdk}';";
+                command.Parameters.AddWithValue("@CDK", cdk);
+                command.CommandText = $"SELECT * from `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` where `CDK` = @CDK;";
                 connection.Open();
                 MySqlDataReader reader = command.ExecuteReader();
                 if (reader.Read())
@@ -255,12 +255,31 @@ namespace CDK
 
         internal void SaveLogToDB(LogData logData)
         {
-            ExecuteQuery(true, $"INSERT INTO `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (CDK,SteamID,`Redeemed Time`,ValidUntil,GrantPermissionGroup,UsePermissionSync) VALUES('{logData.CDK}','{logData.SteamID}','{logData.RedeemTime}','{logData.ValidUntil}','{logData.GrantPermissionGroup}','{logData.UsePermissionSync}')");
+            int usePermissionSync;
+            if(logData.UsePermissionSync)
+            {
+                usePermissionSync = 1;
+            }
+            else
+            {
+                usePermissionSync = 0;
+            }
+
+            ExecuteQuery(true, $"INSERT INTO `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (CDK,SteamID,`Redeemed Time`,ValidUntil,GrantPermissionGroup,UsePermissionSync) VALUES('{logData.CDK}','{logData.SteamID}','{logData.RedeemTime}','{logData.ValidUntil}','{logData.GrantPermissionGroup}','{usePermissionSync}')");
         }
 
         internal void UpdateLogInDB(LogData logData)
         {
-            ExecuteQuery(true, $"UPDATE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` SET `ValidUntil` = '{logData.ValidUntil}',`Redeemed Time` = '{logData.RedeemTime}',`UsePermissionSync` = '{logData.UsePermissionSync}' WHERE `SteamID` = '{logData.SteamID}' AND `CDK` = '{logData.CDK}'");
+            int usePermissionSync;
+            if (logData.UsePermissionSync)
+            {
+                usePermissionSync = 1;
+            }
+            else
+            {
+                usePermissionSync = 0;
+            }
+            ExecuteQuery(true, $"UPDATE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` SET `ValidUntil` = '{logData.ValidUntil}',`Redeemed Time` = '{logData.RedeemTime}',`UsePermissionSync` = '{usePermissionSync}' WHERE `SteamID` = '{logData.SteamID}' AND `CDK` = '{logData.CDK}'");
         }
         internal void UpdateRenew(string cdk)
         {
