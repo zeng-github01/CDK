@@ -85,9 +85,9 @@ namespace CDK
                         }
                         if (cdkdata.Money != 0)
                         {
-                            Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin plugin) =>
+                            Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin uconomy) =>
                             {
-                                if (plugin.State == PluginState.Loaded)
+                                if (uconomy.State == PluginState.Loaded)
                                 {
                                     Uconomy.Instance.Database.IncreaseBalance(player.Id, cdkdata.Money.Value);
                                     UnturnedChat.Say(player, Main.Instance.Translate("uconomy_gain", Convert.ToDecimal(cdkdata.Money.Value), Uconomy.Instance.Configuration.Instance.MoneyName));
@@ -112,9 +112,12 @@ namespace CDK
                         }
                         if (cdkdata.GrantPermissionGroup != string.Empty && cdkdata.UsePermissionSync)
                         {
-                            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin plugin) =>
+                            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
                             {
-                                PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
+                                if (ps.State == PluginState.Loaded)
+                                {
+                                    PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
+                                }
                             });
                         }
 
@@ -205,7 +208,7 @@ namespace CDK
             }
             finally
             {
-                connection.Clone();
+                connection.Close();
             }
 
             return data;
