@@ -54,19 +54,43 @@ namespace CDK
 
                         if (cdkdata.Items != string.Empty && cdkdata.Amount == string.Empty)
                         {
-                            foreach (string item in cdkdata.Items.Split(','))
+                            //foreach (string item in cdkdata.Items.Split(','))
+                            //{
+                            //    player.GiveItem(Convert.ToUInt16(item), 1);
+                            //}
+                            var items = cdkdata.Items.Split(',');
+                            for(int i = 0;i<items.Length;i++)
                             {
-                                player.GiveItem(Convert.ToUInt16(item), 1);
+                               if(ushort.TryParse(items[i], out ushort id))
+                                {
+                                    player.GiveItem(id,1);
+                                }
                             }
                         }
                         else if (cdkdata.Items != string.Empty && cdkdata.Amount != string.Empty)
                         {
-                            foreach (string item in cdkdata.Items.Split(','))
+                            var items = cdkdata.Items.Split(',');
+                            var amount = cdkdata.Items.Split(',');
+                            if(items.Length == amount.Length)
                             {
-                                foreach (string amount in cdkdata.Amount.Split(','))
+                                for(int i = 0;i<amount.Length;i++)
                                 {
-                                    player.GiveItem(Convert.ToUInt16(item), Convert.ToByte(amount));
+                                    try
+                                    { 
+                                        if(!player.GiveItem(Convert.ToUInt16(items[i]), Convert.ToByte( amount[i])))
+                                        {
+                                            UnturnedChat.Say(player, Main.Instance.Translate("items_give_fail"), UnityEngine.Color.red);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
                             }
                         }
 
@@ -136,7 +160,14 @@ namespace CDK
                         }
                         else
                         {
-                            PermissionSync.Main.Instance.databese.UpdatePermission(player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
+                            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
+                            {
+                                if (ps.State == PluginState.Loaded)
+                                {
+                                    //PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
+                                    PermissionSync.Main.Instance.databese.UpdatePermission(player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
+                                }
+                            });
                             UpdateLogInDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil, cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
                             UpdateRenew(CDK);
                         }
