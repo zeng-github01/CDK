@@ -52,14 +52,14 @@ namespace CDK
                     else if (logdata == null && !cdkdata.Renew)
                     {
 
-                        if (cdkdata.Items != "0" && cdkdata.Amount == "0")
+                        if (cdkdata.Items != string.Empty && cdkdata.Amount == string.Empty)
                         {
                             foreach (string item in cdkdata.Items.Split(','))
                             {
                                 player.GiveItem(Convert.ToUInt16(item), 1);
                             }
                         }
-                        else if (cdkdata.Items != "0" && cdkdata.Amount != "0")
+                        else if (cdkdata.Items != string.Empty && cdkdata.Amount != string.Empty)
                         {
                             foreach (string item in cdkdata.Items.Split(','))
                             {
