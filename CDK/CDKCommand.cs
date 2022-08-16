@@ -53,6 +53,9 @@ namespace CDK
                         case DatabaseManager.RedeemCDKResult.PlayerNotMatch:
                             UnturnedChat.Say(caller, Main.Instance.Translate("player_not_match"), UnityEngine.Color.red);
                             break;
+                        case DatabaseManager.RedeemCDKResult.KeyNotValid:
+                            UnturnedChat.Say(caller, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
+                            break;
                     }
                 }
                 else

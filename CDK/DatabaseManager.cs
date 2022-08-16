@@ -80,7 +80,6 @@ namespace CDK
                     {
                         if (!KeyVailed(cdkdata))
                         {
-                            UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
                             return RedeemCDKResult.KeyNotValid;
                         }
                         else
