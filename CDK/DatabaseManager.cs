@@ -21,12 +21,39 @@ namespace CDK
 {
     public class DatabaseManager
     {
-        public enum RedeemCDKResult { Success, Redeemed, KeyNotFound, MaxRedeemed, Renewed, Error, PlayerNotMatch }
+        public enum RedeemCDKResult { Success, Redeemed, KeyNotFound, MaxRedeemed, Renewed, Error, PlayerNotMatch,KeyNotValid }
 
         //public enum CreateCDKResult { Success,Failure,KeyExist,Error}
         internal DatabaseManager()
         {
             CheckSchema();
+        }
+
+        private bool KeyVailed(CDKData cdk)
+        {
+            if(cdk.Items.Length != cdk.Amount.Length)
+            {
+                Logger.LogError(String.Format("CDK:{0} Items and Amount Colunm length not equal! ",cdk.CDK));
+                return false;
+            }
+            for(int i= 0; i<cdk.Items.Length;i++)
+            {
+                if (!ushort.TryParse(cdk.Items[i].ToString(),out ushort id))
+                {
+                    Logger.LogError(String.Format("CDK:{0} has id in Items not a ushort!",cdk.CDK));
+                    return false;
+                }
+            }
+            for(int i =0;i<cdk.Amount.Length;i++)
+            {
+                if (!byte.TryParse(cdk.Amount[i].ToString(),out byte am))
+                {
+                    Logger.LogError(String.Format("CDK:{0} has amount in Amount not a byte. MAX 255!", cdk.CDK));
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public RedeemCDKResult RedeemCDK(UnturnedPlayer player, string CDK)
@@ -37,7 +64,7 @@ namespace CDK
                 var logdata = GetLogData(player.CSteamID,ELogQueryType.ByCDK,CDK);
                 if (cdkdata != null)
                 {
-                    if (cdkdata.Owner != CSteamID.Nil && cdkdata.Owner != player.CSteamID)
+                    if (/*cdkdata.Owner != CSteamID.Nil &&*/ cdkdata.Owner != player.CSteamID)
                     {
                         return RedeemCDKResult.PlayerNotMatch;
                     }
@@ -49,107 +76,100 @@ namespace CDK
                     {
                         return RedeemCDKResult.Redeemed;
                     }
-                    else if (logdata == null && !cdkdata.Renew)
+                    else if (logdata == null)
                     {
-
-                        if (cdkdata.Items != string.Empty && cdkdata.Amount == string.Empty)
+                        if (!KeyVailed(cdkdata))
                         {
-                            //foreach (string item in cdkdata.Items.Split(','))
-                            //{
-                            //    player.GiveItem(Convert.ToUInt16(item), 1);
-                            //}
-                            var items = cdkdata.Items.Split(',');
-                            for(int i = 0;i<items.Length;i++)
+                            UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
+                            return RedeemCDKResult.KeyNotValid;
+                        }
+                        else
+                        {
+                            if (cdkdata.Items != string.Empty && cdkdata.Amount == string.Empty)
                             {
-                               if(ushort.TryParse(items[i], out ushort id))
+
+                                var items = cdkdata.Items.Split(',');
+                                for (int i = 0; i < items.Length; i++)
                                 {
-                                    player.GiveItem(id,1);
+                                    player.GiveItem(ushort.Parse(items[i]), 1);
                                 }
                             }
-                        }
-                        else if (cdkdata.Items != string.Empty && cdkdata.Amount != string.Empty)
-                        {
-                            var items = cdkdata.Items.Split(',');
-                            var amount = cdkdata.Amount.Split(',');
-                            if(items.Length == amount.Length)
+                            else if (cdkdata.Items != string.Empty && cdkdata.Amount != string.Empty)
                             {
-                                for(int i = 0;i<amount.Length;i++)
+                                var items = cdkdata.Items.Split(',');
+                                var amount = cdkdata.Amount.Split(',');
+
+                                for (int i = 0; i < amount.Length; i++)
                                 {
-                                    try
-                                    { 
-                                        if(!player.GiveItem(Convert.ToUInt16(items[i]), Convert.ToByte( amount[i])))
-                                        {
-                                            UnturnedChat.Say(player, Main.Instance.Translate("items_give_fail"), UnityEngine.Color.red);
-                                        }
-                                    }
-                                    catch(Exception ex)
+                                    //try
+                                    //{ 
+                                    if (!player.GiveItem(Convert.ToUInt16(items[i]), Convert.ToByte(amount[i])))
                                     {
-                                        Logger.LogException(ex);
-                                        UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
+                                        UnturnedChat.Say(player, Main.Instance.Translate("items_give_fail"), UnityEngine.Color.red);
                                     }
+                                    //}
+                                    //catch(Exception ex)
+                                    //{
+                                    //    Logger.LogException(ex);
+                                    //    UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
+                                    //}
                                 }
                             }
-                            else
-                            {
-                                Logger.LogError(String.Format("CDK: {0} item and amount length not equals",cdkdata.CDK));
-                                UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
-                            }
-                        }
 
-                        if (cdkdata.Vehicle != 0)
-                        {
-                            player.GiveVehicle(cdkdata.Vehicle.Value);
-                        }
-                        if (cdkdata.Reputation != 0)
-                        {
-                            //UnturnedChat.Say(player, "[DEBUG]EXP:" + cdkdata.Reputation);
-                            player.Player.skills.askRep(cdkdata.Reputation.Value);
-                        }
-                        if (cdkdata.Experience != 0)
-                        {
-                            player.Experience += cdkdata.Experience.Value;
-                        }
-                        if (cdkdata.Money != 0)
-                        {
-                            Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin uconomy) =>
+                            if (cdkdata.Vehicle != 0)
                             {
-                                if (uconomy.State == PluginState.Loaded)
+                                player.GiveVehicle(cdkdata.Vehicle.Value);
+                            }
+                            if (cdkdata.Reputation != 0)
+                            {
+                                player.Player.skills.askRep(cdkdata.Reputation.Value);
+                            }
+                            if (cdkdata.Experience != 0)
+                            {
+                                player.Experience += cdkdata.Experience.Value;
+                            }
+                            if (cdkdata.Money != 0)
+                            {
+                                Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin uconomy) =>
                                 {
-                                    Uconomy.Instance.Database.IncreaseBalance(player.Id, cdkdata.Money.Value);
-                                    UnturnedChat.Say(player, Main.Instance.Translate("uconomy_gain", Convert.ToDecimal(cdkdata.Money.Value), Uconomy.Instance.Configuration.Instance.MoneyName));
-                                }
-                            });
-                        }
-
-                        if (cdkdata.GrantPermissionGroup != string.Empty && !cdkdata.UsePermissionSync)
-                        {
-                            switch (R.Permissions.AddPlayerToGroup(cdkdata.GrantPermissionGroup, player))
-                            {
-                                case Rocket.API.RocketPermissionsProviderResult.Success:
-                                    UnturnedChat.Say(player, Main.Instance.Translate("permission_granted", cdkdata.GrantPermissionGroup));
-                                    break;
-                                case Rocket.API.RocketPermissionsProviderResult.DuplicateEntry:
-                                    UnturnedChat.Say(player, Main.Instance.Translate("permission_duplicate_entry", cdkdata.GrantPermissionGroup), UnityEngine.Color.yellow);
-                                    break;
-                                default:
-                                    UnturnedChat.Say(player, Main.Instance.Translate("permission_grant_error"), UnityEngine.Color.red);
-                                    break;
+                                    if (uconomy.State == PluginState.Loaded)
+                                    {
+                                        Uconomy.Instance.Database.IncreaseBalance(player.Id, cdkdata.Money.Value);
+                                        UnturnedChat.Say(player, Main.Instance.Translate("uconomy_gain", Convert.ToDecimal(cdkdata.Money.Value), Uconomy.Instance.Configuration.Instance.MoneyName));
+                                    }
+                                });
                             }
-                        }
-                        if (cdkdata.GrantPermissionGroup != string.Empty && cdkdata.UsePermissionSync)
-                        {
-                            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
-                            {
-                                if (ps.State == PluginState.Loaded)
-                                {
-                                    PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
-                                }
-                            });
-                        }
 
-                        SaveLogToDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil,cdkdata.GrantPermissionGroup,cdkdata.UsePermissionSync));
-                        IncreaseRedeemedTime(CDK);
-                        return RedeemCDKResult.Success;
+                            if (cdkdata.GrantPermissionGroup != string.Empty && !cdkdata.UsePermissionSync)
+                            {
+                                switch (R.Permissions.AddPlayerToGroup(cdkdata.GrantPermissionGroup, player))
+                                {
+                                    case Rocket.API.RocketPermissionsProviderResult.Success:
+                                        UnturnedChat.Say(player, Main.Instance.Translate("permission_granted", cdkdata.GrantPermissionGroup));
+                                        break;
+                                    case Rocket.API.RocketPermissionsProviderResult.DuplicateEntry:
+                                        UnturnedChat.Say(player, Main.Instance.Translate("permission_duplicate_entry", cdkdata.GrantPermissionGroup), UnityEngine.Color.yellow);
+                                        break;
+                                    default:
+                                        UnturnedChat.Say(player, Main.Instance.Translate("permission_grant_error"), UnityEngine.Color.red);
+                                        break;
+                                }
+                            }
+                            if (cdkdata.GrantPermissionGroup != string.Empty && cdkdata.UsePermissionSync)
+                            {
+                                Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
+                                {
+                                    if (ps.State == PluginState.Loaded)
+                                    {
+                                        PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
+                                    }
+                                });
+                            }
+
+                            SaveLogToDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil, cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
+                            IncreaseRedeemedTime(CDK);
+                            return RedeemCDKResult.Success;
+                        }
                     }
                     else if (logdata != null && cdkdata.Renew)
                     {
@@ -166,12 +186,12 @@ namespace CDK
                             {
                                 if (ps.State == PluginState.Loaded)
                                 {
-                                    //PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
                                     PermissionSync.Main.Instance.databese.UpdatePermission(player, cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
                                 }
                             });
                             UpdateLogInDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil, cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
                             UpdateRenew(CDK);
+                            return RedeemCDKResult.Renewed;
                         }
                     }
                 }
@@ -187,7 +207,7 @@ namespace CDK
             return RedeemCDKResult.Error;
         }
 
-        public void CheckValid(UnturnedPlayer player)
+        internal void CheckValid(UnturnedPlayer player)
         {
             LogData logData = GetLogData(player.CSteamID,ELogQueryType.ByTime);
             if (logData != null && logData.GrantPermissionGroup != string.Empty && !logData.UsePermissionSync)
@@ -214,7 +234,6 @@ namespace CDK
         }
         private LogData BuildLogData(MySqlDataReader reader)
         {
-            //Logger.LogWarning("Start Building LogData");
             return new LogData(reader.GetString(0), new CSteamID(Convert.ToUInt64(reader.GetUInt64(1))), reader.GetDateTime(2), reader.GetDateTime(3),reader.GetString(4),reader.GetBoolean(5));
         }
 
