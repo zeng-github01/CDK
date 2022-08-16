@@ -33,7 +33,7 @@ namespace CDK
         {
             if(cdk.Items.Length != cdk.Amount.Length)
             {
-                Logger.LogError(String.Format("CDK:{0} Items and Amount Colunm length not equal! ",cdk.CDK));
+                Logger.LogError(String.Format("CDK:{0} Items and Amount Column length not equal! ",cdk.CDK));
                 return false;
             }
             for(int i= 0; i<cdk.Items.Length;i++)
