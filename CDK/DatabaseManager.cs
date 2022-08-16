@@ -70,7 +70,7 @@ namespace CDK
                         else if (cdkdata.Items != string.Empty && cdkdata.Amount != string.Empty)
                         {
                             var items = cdkdata.Items.Split(',');
-                            var amount = cdkdata.Items.Split(',');
+                            var amount = cdkdata.Amount.Split(',');
                             if(items.Length == amount.Length)
                             {
                                 for(int i = 0;i<amount.Length;i++)
@@ -82,14 +82,16 @@ namespace CDK
                                             UnturnedChat.Say(player, Main.Instance.Translate("items_give_fail"), UnityEngine.Color.red);
                                         }
                                     }
-                                    catch
+                                    catch(Exception ex)
                                     {
+                                        Logger.LogException(ex);
                                         UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
                                     }
                                 }
                             }
                             else
                             {
+                                Logger.LogError(String.Format("CDK: {0} item and amount length not equals",cdkdata.CDK));
                                 UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
                             }
                         }
