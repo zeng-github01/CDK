@@ -22,5 +22,5 @@ Tip1: Permission Group ID,NOT DisplayName<br>
 Tip2: Change "UsePermissionSync" to 1<br>
 It can let my another plugin "PermissionSync" to manager permission to give<br>
 
-Change EnableRenew to 1.it can Enables CDK to be redeemed twice to extend the validity period of the permission group<br>
+Change EnableRenew to 1.it can Enables CDK to be redeemed to extend the validity period of the permission group<br>
 ValidUntil needs to be modified synchronously to decide the extension time
