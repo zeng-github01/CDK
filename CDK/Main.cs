@@ -27,7 +27,7 @@ namespace CDK
         protected override void Load()
         {
             Instance = this;
-            CheckUpdate();  
+            //CheckUpdate();  
             Database = new DatabaseManager();
             U.Events.OnPlayerConnected += PlayerConnect;
             Rocket.Core.Logging.Logger.Log("CDK Plugin loaded");
@@ -69,8 +69,9 @@ namespace CDK
 
         private void CheckUpdate()
         {
+            string dlstring = "https://api.github.com/repos/zeng-github01/CDKey-CodeReward/releases/latest";
             WebClient webClient = new WebClient();
-             string jsonstring =  webClient.DownloadString("https://api.github.com/repos/zeng-github01/CDKey-CodeReward/releases/latest");
+             string jsonstring =  webClient.DownloadString(dlstring);
               var json = JObject.Parse(jsonstring);
             Version version = new Version(json["tag_name"].ToString());
             Version crv = Assembly.GetName().Version;
