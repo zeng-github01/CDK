@@ -31,25 +31,28 @@ namespace CDK
 
         private bool KeyVailed(CDKData cdk)
         {
-            if(cdk.Items.Length != cdk.Amount.Length)
+            if (cdk.Items != string.Empty && cdk.Amount != string.Empty)
             {
-                Logger.LogError(String.Format("CDK:{0} Items and Amount Column length not equal! ",cdk.CDK));
-                return false;
-            }
-            for(int i= 0; i<cdk.Items.Length;i++)
-            {
-                if (!ushort.TryParse(cdk.Items[i].ToString(),out ushort id))
+                if (cdk.Items.Split(',').Length != cdk.Amount.Split(',').Length)
                 {
-                    Logger.LogError(String.Format("CDK:{0} has id in Items not a ushort!",cdk.CDK));
+                    Logger.LogError(String.Format("CDK:{0} Items and Amount Column length not equal! ", cdk.CDK));
                     return false;
                 }
-            }
-            for(int i =0;i<cdk.Amount.Length;i++)
-            {
-                if (!byte.TryParse(cdk.Amount[i].ToString(),out byte am))
+                for (int i = 0; i < cdk.Items.Split(',').Length; i++)
                 {
-                    Logger.LogError(String.Format("CDK:{0} has amount in Amount not a byte. MAX 255!", cdk.CDK));
-                    return false;
+                    if (!ushort.TryParse(cdk.Items[i].ToString(), out ushort id))
+                    {
+                        Logger.LogError(String.Format("CDK:{0} has id in Items not a ushort!", cdk.CDK));
+                        return false;
+                    }
+                }
+                for (int i = 0; i < cdk.Amount.Split(',').Length; i++)
+                {
+                    if (!byte.TryParse(cdk.Amount[i].ToString(), out byte am))
+                    {
+                        Logger.LogError(String.Format("CDK:{0} has amount in Amount not a byte. MAX 255!", cdk.CDK));
+                        return false;
+                    }
                 }
             }
 
