@@ -31,14 +31,14 @@ namespace CDK
 
         private bool KeyVailed(CDKData cdk)
         {
-            if (cdk.Items != string.Empty && cdk.Amount != string.Empty)
+            if (cdk.Items.Length != 0 && cdk.Amount.Length != 0)
             {
-                if (cdk.Items.Split(',').Length != cdk.Amount.Split(',').Length)
+                if (cdk.Items.Length != cdk.Amount.Length)
                 {
                     Logger.LogError(String.Format("CDK:{0} Items and Amount Column length not equal! ", cdk.CDK));
                     return false;
                 }
-                for (int i = 0; i < cdk.Items.Split(',').Length; i++)
+                for (int i = 0; i < cdk.Items.Length; i++)
                 {
                     if (!ushort.TryParse(cdk.Items[i].ToString(), out ushort id))
                     {
@@ -46,7 +46,7 @@ namespace CDK
                         return false;
                     }
                 }
-                for (int i = 0; i < cdk.Amount.Split(',').Length; i++)
+                for (int i = 0; i < cdk.Amount.Length; i++)
                 {
                     if (!byte.TryParse(cdk.Amount[i].ToString(), out byte am))
                     {
@@ -87,19 +87,19 @@ namespace CDK
                         }
                         else
                         {
-                            if (cdkdata.Items != string.Empty && cdkdata.Amount == string.Empty)
+                            if (cdkdata.Items.Length != 0 && cdkdata.Amount.Length == 0)
                             {
 
-                                var items = cdkdata.Items.Split(',');
+                                var items = cdkdata.Items;
                                 for (int i = 0; i < items.Length; i++)
                                 {
                                     player.GiveItem(ushort.Parse(items[i]), 1);
                                 }
                             }
-                            else if (cdkdata.Items != string.Empty && cdkdata.Amount != string.Empty)
+                            else if (cdkdata.Items.Length != 0 && cdkdata.Amount.Length != 0)
                             {
-                                var items = cdkdata.Items.Split(',');
-                                var amount = cdkdata.Amount.Split(',');
+                                var items = cdkdata.Items;
+                                var amount = cdkdata.Amount;
 
                                 for (int i = 0; i < amount.Length; i++)
                                 {

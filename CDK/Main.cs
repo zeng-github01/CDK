@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 using Rocket.API.Collections;
 using Rocket.Core.Plugins;
 using Rocket.Unturned.Player;
@@ -15,6 +16,7 @@ using SDG.Unturned;
 using fr34kyn01535.Uconomy;
 using System.IO;
 using Rocket.Core.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace CDK
 {
@@ -24,10 +26,10 @@ namespace CDK
         public static Main Instance; 
         protected override void Load()
         {
-            Instance = this;  
-            
-                Database = new DatabaseManager();
-                U.Events.OnPlayerConnected += PlayerConnect;
+            Instance = this;
+            CheckUpdate();  
+            Database = new DatabaseManager();
+            U.Events.OnPlayerConnected += PlayerConnect;
             Rocket.Core.Logging.Logger.Log("CDK Plugin loaded");
         }
 
@@ -36,295 +38,6 @@ namespace CDK
             U.Events.OnPlayerConnected -= PlayerConnect;
             Rocket.Core.Logging.Logger.Log("CDK Plugin unloaded");
         }
-        //#region Redeem
-        //public void CDKRedeem(UnturnedPlayer player,string CDK)
-        //{
-        //    CDK key = Configuration.Instance.CDKs.Where(x => x.Key == CDK).FirstOrDefault();
-        //    if(key != null)
-        //    {
-        //        //Admin
-        //        if (player.IsAdmin && Configuration.Instance.BypassAdmin)
-        //        {
-        //            string[] Items = key.Items.Split(',');
-        //            foreach (string item in Items)
-        //            {
-        //                if (ushort.TryParse(item, out ushort s))
-        //                {
-        //                    if (!player.GiveItem(s, 1))
-        //                    {
-        //                        UnturnedChat.Say(player, Instance.Translate("items_give_fail"), Color.red);
-        //                    }
-        //                }
-        //            }
-        //            if (key.Vehicle.HasValue && key.Vehicle > 0)
-        //            {
-        //                player.GiveVehicle(key.Vehicle.Value);
-        //            }
-        //            if (key.XP.HasValue && key.XP != 0)
-        //            {
-        //                player.Experience += key.XP.Value;
-        //            }
-        //            if (key.Money.HasValue && key.Money.Value != 0)
-        //            {
-        //                Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin plugin) =>
-        //                {
-        //                    Uconomy.Instance.Database.IncreaseBalance(player.CSteamID.ToString(), key.Money.Value);
-        //                });
-        //            }
-        //            UnturnedChat.Say(player, Instance.Translate("success"));
-        //            return;
-        //        }
-        //        //重复领取判断
-        //        DirectoryInfo info = new DirectoryInfo(Assembly.Location);
-        //        if (File.Exists(info.Parent + "\\CDK\\Redeem.log"))
-        //        {
-        //           string[] logsreach = File.ReadAllLines(info.Parent + "\\CDK\\Redeem.log");
-        //            if(logsreach.Contains(player+","+CDK))
-        //            {
-        //                UnturnedChat.Say(player, Instance.Translate("already_redeemed"), Color.red);
-        //                return;
-        //            }
-        //        }
-        //        else
-        //        { 
-        //            File.CreateText(info.Parent + "\\CDK\\Redeem.log");
-        //        }
-
-        //        if (key.RedeemPermission != null && player.HasPermission(key.RedeemPermission) && !player.IsAdmin)
-        //        {
-        //            string[] Items = key.Items.Split(',');
-        //            foreach (string item in Items)
-        //            {  
-        //                if(ushort.TryParse(item,out ushort s))
-        //                {
-        //                    if(!player.GiveItem(s, 1))
-        //                    {
-        //                        UnturnedChat.Say(player, Instance.Translate("items_give_fail"), Color.red);
-        //                    }
-        //                }
-        //            }
-        //            if (key.Vehicle.HasValue && key.Vehicle > 0)
-        //            {
-        //                player.GiveVehicle(key.Vehicle.Value);
-        //            }
-        //            if (key.XP.HasValue && key.XP.Value != 0)
-        //            {
-        //                player.Experience += key.XP.Value;
-        //            }
-        //            if (key.Money.HasValue && key.Money.Value != 0)
-        //            {
-        //                Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin plugin) =>
-        //                {
-        //                    Uconomy.Instance.Database.IncreaseBalance(player.CSteamID.ToString(), key.Money.Value);
-        //                });
-        //            }
-
-        //            if(key.GrantPermissionGroup !="")
-        //            {
-        //                switch (R.Permissions.AddPlayerToGroup(key.GrantPermissionGroup, player))
-        //                {
-        //                    case RocketPermissionsProviderResult.Success:
-        //                        UnturnedChat.Say(player, Instance.Translate("permission_granted"));
-        //                        return;
-        //                    case RocketPermissionsProviderResult.DuplicateEntry:
-        //                        UnturnedChat.Say(player, Instance.Translate("permission_duplicate_entry",key.GrantPermissionGroup),Color.yellow);
-        //                        return;
-        //                    default:
-        //                        UnturnedChat.Say(player, Instance.Translate("permission_grant_error"), Color.red);
-        //                        break;
-        //                }
-        //            }
-        //            if (File.Exists(info.Parent + "\\CDK\\Redeem.log"))
-        //            {
-        //                StreamWriter sw = new StreamWriter(info.Parent + "\\CDK\\Redeem.log");
-        //                sw.WriteLine(player + "," + CDK);
-        //                sw.Dispose();
-        //                UnturnedChat.Say(player, Instance.Translate("success"));
-        //                return;
-        //            }
-        //            else
-        //            {
-        //                File.CreateText(info.Parent + "\\CDK\\Redeem.log");
-        //                StreamWriter sw = new StreamWriter(info.Parent + "\\CDK\\Redeem.log");
-        //                sw.WriteLine(player + "," + CDK);
-        //                sw.Dispose();
-        //                UnturnedChat.Say(player, Instance.Translate("success"));
-        //                return;
-        //            }
-        //        }
-        //        else if (key.RedeemPermission != "" && !player.HasPermission(key.RedeemPermission))
-        //        {
-        //            UnturnedChat.Say(player, Instance.Translate("don't_have_permisson"), Color.red);
-        //            return;
-        //        }
-        //        else if (key.RedeemPermission == "")
-        //        {
-        //            if (key.MaxCount.HasValue && key.MaxCount.Value > 0)
-        //            {
-        //                int Count = key.CurrentCount.Value;
-
-        //                if ( key.CurrentCount.Value >= key.MaxCount.Value)
-        //                {
-        //                    UnturnedChat.Say(player, Instance.Translate("maxcount_reached"), Color.red);
-        //                    return;
-        //                }
-        //                else
-        //                {
-        //                    //计次
-        //                    string[] Items = key.Items.Split(',');
-        //                    foreach (string item in Items)
-        //                    {
-        //                        if (ushort.TryParse(item, out ushort s))
-        //                        {
-        //                            if (!player.GiveItem(s, 1))
-        //                            {
-        //                                UnturnedChat.Say(player, Instance.Translate("items_give_fail"), Color.red);
-        //                            }
-        //                        }
-        //                    }
-        //                    if (key.Vehicle.HasValue && key.Vehicle > 0)
-        //                    {
-        //                        player.GiveVehicle(key.Vehicle.Value);
-        //                    }
-        //                    if (key.XP.HasValue && key.XP != 0)
-        //                    {
-        //                        player.Experience += key.XP.Value;
-        //                    }
-        //                    if (key.Money.HasValue && key.Money.Value != 0)
-        //                    {
-        //                        Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin plugin) =>
-        //                        {
-        //                            Uconomy.Instance.Database.IncreaseBalance(player.CSteamID.ToString(), key.Money.Value);
-        //                        });
-        //                    }
-
-        //                    if (key.GrantPermissionGroup != "")
-        //                    {
-        //                        switch (R.Permissions.AddPlayerToGroup(key.GrantPermissionGroup, player))
-        //                        {
-        //                            case RocketPermissionsProviderResult.Success:
-        //                                UnturnedChat.Say(player, Instance.Translate("permission_granted"));
-        //                                return;
-        //                            case RocketPermissionsProviderResult.DuplicateEntry:
-        //                                UnturnedChat.Say(player, Instance.Translate("permission_duplicate_entry",key.GrantPermissionGroup),Color.yellow);
-        //                                return;
-        //                            default:
-        //                                UnturnedChat.Say(player, Instance.Translate("permission_grant_error"), Color.red);
-        //                                break;
-        //                        }
-        //                    }
-        //                    if (File.Exists(info.Parent + "\\CDK\\Redeem.log"))
-        //                    {
-        //                        StreamWriter sw = new StreamWriter(info.Parent + "\\CDK\\Redeem.log");
-        //                        sw.WriteLine(player + "," + CDK);
-        //                        sw.Dispose();
-        //                        UnturnedChat.Say(player, Instance.Translate("success"));
-        //                        Count++;
-        //                        key.CurrentCount = Count;
-        //                        Configuration.Save();
-        //                        return;
-        //                    }
-        //                    else
-        //                    {
-        //                        File.CreateText(info.Parent + "\\CDK\\Redeem.log");
-        //                        StreamWriter sw = new StreamWriter(info.Parent + "\\CDK\\Redeem.log");
-        //                        sw.WriteLine(player + "," + CDK);
-        //                        sw.Dispose();
-        //                        UnturnedChat.Say(player, Instance.Translate("success"));
-        //                        Count++;
-        //                        key.CurrentCount = Count;
-        //                        Configuration.Save();
-        //                        return;
-        //                    }
-        //                }
-                        
-        //            }
-        //            else
-        //            {
-        //                string[] Items = key.Items.Split(',');
-        //                foreach (string item in Items)
-        //                {
-        //                    if (ushort.TryParse(item, out ushort s))
-        //                    {
-        //                        if (!player.GiveItem(s, 1))
-        //                        {
-        //                            UnturnedChat.Say(player, Instance.Translate("items_give_fail"), Color.red);
-        //                        }
-        //                    }
-        //                }
-        //                if (key.Vehicle.HasValue && key.Vehicle > 0)
-        //                {
-        //                    player.GiveVehicle(key.Vehicle.Value);
-        //                }
-        //                if(key.XP.HasValue && key.XP != 0)
-        //                {
-        //                    player.Experience += key.XP.Value;
-        //                }
-        //                if(key.Money.HasValue && key.Money.Value !=0)
-        //                {           
-        //                    Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin plugin) =>
-        //                     {
-        //                         Uconomy.Instance.Database.IncreaseBalance(player.CSteamID.ToString(), key.Money.Value);
-        //                     });
-        //                }
-
-        //                if (key.GrantPermissionGroup != "")
-        //                {
-        //                    switch (R.Permissions.AddPlayerToGroup(key.GrantPermissionGroup, player))
-        //                    {
-        //                        case RocketPermissionsProviderResult.Success:
-        //                            UnturnedChat.Say(player, Instance.Translate("permission_granted"));
-        //                            return;
-        //                        case RocketPermissionsProviderResult.DuplicateEntry:
-        //                            UnturnedChat.Say(player, Instance.Translate("permission_duplicate_entry",key.GrantPermissionGroup),Color.yellow);
-        //                            return;
-        //                        default:
-        //                            UnturnedChat.Say(player, Instance.Translate("permission_grant_error"), Color.red);
-        //                            break;
-        //                    }
-        //                }
-        //                if (File.Exists(info.Parent + "\\CDK\\Redeem.log"))
-        //                {
-        //                    StreamWriter sw = new StreamWriter(info.Parent + "\\CDK\\Redeem.log");
-        //                    sw.WriteLine(player + "," + CDK);
-        //                    sw.Dispose();
-        //                    UnturnedChat.Say(player, Instance.Translate("success"));
-        //                    //return;
-        //                }
-                        
-                        
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        UnturnedChat.Say(player,Instance.Translate("key_dones't_exist",CDK),Color.red);
-        //        return;
-        //    }
-        //}
-        //#endregion
-
-        //#region ResetCount
-        //public bool ResetKeyCount(string CDK)
-        //{
-        //    bool success = false;
-        //    CDK key = Configuration.Instance.CDKs.Where(y => y.Key == CDK).FirstOrDefault();
-        //    if(key != null)
-        //    {
-        //        key.CurrentCount = 0;
-        //        Configuration.Save();
-        //        success = true;
-        //    }
-        //    return success;
-        //}
-        //#endregion
-
-        #region Rendom
-        //public string GenerateKey()
-        //{
-             
-        //}
-        #endregion
 
 
         private void PlayerConnect(UnturnedPlayer player)
@@ -353,5 +66,18 @@ namespace CDK
                 {"player_not_match","This CDK not belong to you!" },
                 {"cdk_config_error","CDK configuration error.please contact server owner!" }
             };
+
+        private void CheckUpdate()
+        {
+            WebClient webClient = new WebClient();
+             string jsonstring =  webClient.DownloadString("https://api.github.com/repos/zeng-github01/CDKey-CodeReward/releases/latest");
+              var json = JObject.Parse(jsonstring);
+            Version version = new Version(json["tag_name"].ToString());
+            Version crv = Assembly.GetName().Version;
+            if(version > crv)
+            {
+                Rocket.Core.Logging.Logger.LogWarning(String.Format("New Update {0} has been released",version.ToString()));
+            }
+        }
     }
 }

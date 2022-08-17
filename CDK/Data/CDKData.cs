@@ -10,8 +10,10 @@ namespace CDK.Data
     public class CDKData
     {
         public string CDK { get; internal set; }
-        public string Items { get; internal set; }
-        public string Amount { get; internal set; }
+        public string[] Items { get; internal set; }
+        //public string Items { get; internal set; }
+        //public string Amount { get; internal set; }
+        public string[] Amount { get; internal set; }
         public ushort? Vehicle { get; internal set; }
         public ushort? Experience { get; internal set; }
         public decimal? Money { get; internal set; }
@@ -27,8 +29,8 @@ namespace CDK.Data
         public CDKData(string cdk,string items, string amount, ushort? vehicle, ushort? exp, decimal? money, int? reputation, string permissonGroup, int redeemedTimes, int? maxredeem, DateTime validuntill, CSteamID steamID, bool renew, bool usePermissionSync)
         {
             CDK = cdk;
-            Items = items;
-            Amount = amount;
+            Items = items.Split(',');
+            Amount = amount.Split(',');
             Vehicle = vehicle;
             Experience = exp;
             Money = money;
