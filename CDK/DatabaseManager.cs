@@ -85,8 +85,8 @@ namespace CDK
                         {
                             return RedeemCDKResult.KeyNotValid;
                         }
-                        else
-                        {
+                        //else
+                        //{
                             if (cdkdata.Items.Length != 0 && cdkdata.Amount.Length == 0)
                             {
 
@@ -103,18 +103,10 @@ namespace CDK
 
                                 for (int i = 0; i < amount.Length; i++)
                                 {
-                                    //try
-                                    //{ 
                                     if (!player.GiveItem(Convert.ToUInt16(items[i]), Convert.ToByte(amount[i])))
                                     {
                                         UnturnedChat.Say(player, Main.Instance.Translate("items_give_fail"), UnityEngine.Color.red);
                                     }
-                                    //}
-                                    //catch(Exception ex)
-                                    //{
-                                    //    Logger.LogException(ex);
-                                    //    UnturnedChat.Say(player, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
-                                    //}
                                 }
                             }
 
@@ -171,7 +163,7 @@ namespace CDK
                             SaveLogToDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil, cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
                             IncreaseRedeemedTime(CDK);
                             return RedeemCDKResult.Success;
-                        }
+                        //}
                     }
                     else if (logdata != null && cdkdata.Renew)
                     {
@@ -226,17 +218,17 @@ namespace CDK
 
         private CDKData BuildCDKData(MySqlDataReader reader)
         {
-            var cid = reader.GetString(12);
+            var cid = Convert.ToUInt64(reader[12]);
             CSteamID owner = CSteamID.Nil;
-            if (cid != string.Empty)
+            if (cid != 0)
             {
-                owner = new CSteamID(Convert.ToUInt64(cid));
+                owner = new CSteamID(cid);
             }
-            return new CDKData(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetUInt16(3), reader.GetUInt16(4), reader.GetDecimal(6), reader.GetInt32(5), reader.GetString(7), reader.GetInt32(9), reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11), reader.GetBoolean(13));
+            return new CDKData(reader.GetString(0), Convert.ToString(reader["Items"]), Convert.ToString(reader["Amount"]), Convert.ToUInt16(reader["Vehicle"]), Convert.ToUInt16(reader["Experience"]), Convert.ToDecimal(reader["Money"]), Convert.ToInt32(reader["Reputation"]), Convert.ToString(reader[7]), reader.GetInt32(9), reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11), reader.GetBoolean(13));
         }
         private LogData BuildLogData(MySqlDataReader reader)
         {
-            return new LogData(reader.GetString(0), new CSteamID(Convert.ToUInt64(reader.GetUInt64(1))), reader.GetDateTime(2), reader.GetDateTime(3),reader.GetString(4),reader.GetBoolean(5));
+            return new LogData(reader.GetString(0), new CSteamID(Convert.ToUInt64(reader[1])), reader.GetDateTime(2), reader.GetDateTime(3),Convert.ToString(reader[4]),reader.GetBoolean(5));
         }
 
         public CDKData GetCDKData(string cdk)
@@ -375,14 +367,14 @@ namespace CDK
 
             if (cdk == null)
                 ExecuteQuery(false,
-                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` (`CDK` varchar(32) NOT NULL,`Items` varchar(32) NOT NULL Default '0', `Amount` varchar(32) NOT NULL DEFAULT '0', `Vehicle` int(16) NOT NULL DEFAULT '0', `Experience` int(32) NOT NULL DEFAULT '0', `Reputation` int NOT NULL DEFAULT '0' , `Money` decimal(16,2) NOT NULL DEFAULT '0', `GrantPermissionGroup` varchar(32) NOT NULL DEFAULT '' , `MaxRedeem` int(32) NOT NULL DEFAULT '1', `RedeemedTimes` int(6) NOT NULL DEFAULT '0', `ValidUntil` datetime(6) NOT NULL DEFAULT '{DateTime.MaxValue}', `EnableRenew` BOOLEAN NOT NULL DEFAULT '0', `Owner` varchar(32) NOT NULL DEFAULT '' , `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0',PRIMARY KEY (`CDK`))");
+                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` (`CDK` varchar(32) NOT NULL,`Items` varchar(32) , `Amount` varchar(32), `Vehicle` int(16) UNSIGNED, `Experience` int(32), `Reputation` int , `Money` decimal(16,2), `GrantPermissionGroup` varchar(32), `MaxRedeem` int(32) NOT NULL DEFAULT '1', `RedeemedTimes` int(6) NOT NULL DEFAULT '0', `ValidUntil` datetime(6) NOT NULL DEFAULT '{DateTime.MaxValue}', `EnableRenew` BOOLEAN NOT NULL DEFAULT '0', `Owner` BIGINT, `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0',PRIMARY KEY (`CDK`))");
 
             var log = ExecuteQuery(true,
                $"show tables like '{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}'");
 
             if (log == null)
                 ExecuteQuery(false,
-                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (`CDK` varchar(32) NOT NULL, `SteamID` varchar(32) NOT NULL, `Redeemed Time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `ValidUntil` datetime(6) NOT NULL, `GrantPermissionGroup` VARCHAR(32) NOT NULL DEFAULT '{string.Empty}', `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0')");
+                    $"CREATE TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` (`CDK` varchar(32) NOT NULL, `SteamID` varchar(32) NOT NULL, `Redeemed Time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, `ValidUntil` datetime(6) NOT NULL, `GrantPermissionGroup` VARCHAR(32), `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0')");
             if(Main.Instance.Configuration.Instance.MySQLTableVer == 1)
             {
                 ExecuteQuery(true,
@@ -390,6 +382,18 @@ namespace CDK
                 ExecuteQuery(true,
                     $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` ADD `UsePermissionSync` BOOLEAN NOT NULL DEFAULT '0'");
                 Main.Instance.Configuration.Instance.MySQLTableVer = 2;
+                Main.Instance.Configuration.Save();
+            }
+            if(Main.Instance.Configuration.Instance.MySQLTableVer == 2)
+            {
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Items` VARCHAR(32)");
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Amount` VARCHAR(32)");
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Vehicle` INT(16) UNSIGNED");
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Experience` INT(32) ");
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Reputation` INT ");
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Money` decimal(16,2)");
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` MODIFY `GrantPermissionGroup` VARCHAR(32)");
+                Main.Instance.Configuration.Instance.MySQLTableVer = 3;
                 Main.Instance.Configuration.Save();
             }
         }
