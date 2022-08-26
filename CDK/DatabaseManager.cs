@@ -396,6 +396,13 @@ namespace CDK
                 Main.Instance.Configuration.Instance.MySQLTableVer = 3;
                 Main.Instance.Configuration.Save();
             }
+            if(Main.Instance.Configuration.Instance.MySQLTableVer == 3)
+            {
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `GrantPermissionGroup` VARCHAR(32)");
+                ExecuteQuery(true, $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Owner` BIGINT UNSIGNED");
+                Main.Instance.Configuration.Instance.MySQLTableVer = 4;
+                Main.Instance.Configuration.Save();
+            }
         }
 
         private MySqlConnection CreateConnection()
