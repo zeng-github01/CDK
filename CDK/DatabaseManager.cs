@@ -67,7 +67,7 @@ namespace CDK
                 var logdata = GetLogData(player.CSteamID,ELogQueryType.ByCDK,CDK);
                 if (cdkdata != null)
                 {
-                    if (/*cdkdata.Owner != CSteamID.Nil &&*/ cdkdata.Owner != player.CSteamID)
+                    if (cdkdata.Owner != CSteamID.Nil && cdkdata.Owner != player.CSteamID)
                     {
                         return RedeemCDKResult.PlayerNotMatch;
                     }
