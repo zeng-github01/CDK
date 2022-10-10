@@ -80,7 +80,8 @@ namespace CDK
             Version crv = Assembly.GetName().Version;
             if(version > crv)
             {
-                Rocket.Core.Logging.Logger.LogWarning(String.Format("New Update {0} has been released",version.ToString()));
+                Rocket.Core.Logging.Logger.Log(String.Format("New Update {0} has been released",version.ToString()),ConsoleColor.Green);
+                Rocket.Core.Logging.Logger.LogWarning($"{Name} has been unload");
                 this.UnloadPlugin();
             }
         }
