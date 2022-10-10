@@ -23,11 +23,12 @@ namespace CDK
     public class Main : RocketPlugin<Config>
     {
         public DatabaseManager Database;
-        public static Main Instance; 
+        public static Main Instance;
+        private static readonly string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36";
         protected override void Load()
         {
             Instance = this;
-            //CheckUpdate();  
+            CheckUpdate();  
             Database = new DatabaseManager();
             U.Events.OnPlayerConnected += PlayerConnect;
             Rocket.Core.Logging.Logger.Log("CDK Plugin loaded");
@@ -69,8 +70,10 @@ namespace CDK
 
         private void CheckUpdate()
         {
+            
             string dlstring = "https://api.github.com/repos/zeng-github01/CDKey-CodeReward/releases/latest";
             WebClient webClient = new WebClient();
+            webClient.Headers.Add("user-agent",USER_AGENT);
              string jsonstring =  webClient.DownloadString(dlstring);
               var json = JObject.Parse(jsonstring);
             Version version = new Version(json["tag_name"].ToString());
@@ -78,6 +81,7 @@ namespace CDK
             if(version > crv)
             {
                 Rocket.Core.Logging.Logger.LogWarning(String.Format("New Update {0} has been released",version.ToString()));
+                this.UnloadPlugin();
             }
         }
     }
