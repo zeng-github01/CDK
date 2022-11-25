@@ -83,7 +83,6 @@ namespace CDK
                 Rocket.Core.Logging.Logger.Log(String.Format("New Update {0} has been released",version.ToString()),ConsoleColor.Green);
                 Rocket.Core.Logging.Logger.LogWarning($"{Name} has been unload");
                 Rocket.Core.Logging.Logger.Log("Go to " + "https://github.com/zeng-github01/CDKey-CodeReward/releases/latest"+"to get latest update", ConsoleColor.Yellow);
-                this.UnloadPlugin();
             }
         }
     }

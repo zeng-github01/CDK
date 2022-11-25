@@ -12,10 +12,10 @@ using fr34kyn01535.Uconomy;
 using Rocket.API;
 using CDK.Data;
 using Steamworks;
-//using UnityEngine;
 using Rocket.Core.Plugins;
 using CDK.Enum;
 using PermissionSync;
+using Dapper;
 
 namespace CDK
 {
@@ -75,7 +75,7 @@ namespace CDK
             try
             {
                 var cdkdata = GetCDKData(CDK);
-                var logdata = GetLogData(player.CSteamID, ELogQueryType.ByCDK, CDK);
+                var logdata = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByCDK, CDK);
                 if (cdkdata != null)
                 {
                     if (cdkdata.Owner != 0 && cdkdata.Owner != player.CSteamID.m_SteamID)
@@ -232,7 +232,7 @@ namespace CDK
 
         internal void CheckValid(UnturnedPlayer player)
         {
-            LogData logData = GetLogData(player.CSteamID, ELogQueryType.ByTime);
+            LogData logData = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
             if (logData != null && logData.GrantPermissionGroup != string.Empty && !logData.UsePermissionSync)
             {
                 do
@@ -240,108 +240,66 @@ namespace CDK
                     CDKData cDKData = GetCDKData(logData.CDK);
                     R.Permissions.RemovePlayerFromGroup(cDKData.GrantPermissionGroup, player);
                     UnturnedChat.Say(player, Main.Instance.Translate("key_expired", logData.CDK));
-                    logData = GetLogData(player.CSteamID, ELogQueryType.ByTime);
+                    logData = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
                 } while (logData == null);
             }
         }
 
-        private CDKData BuildCDKData(MySqlDataReader reader)
+       
+        public CDKData GetCDKData(string key)
         {
-            ulong owner = reader.IsDBNull(12) ? UInt64.MinValue : reader.GetUInt64(12);
-            string items = reader.IsDBNull(1) ? String.Empty : reader.GetString(1);
-            string amount = reader.IsDBNull(2) ? String.Empty : reader.GetString(2);
-            ushort vehicle = reader.IsDBNull(2) ? UInt16.MinValue : reader.GetUInt16(2);
-            ushort exp = reader.IsDBNull(4) ? UInt16.MinValue : reader.GetUInt16(4);
-            decimal money = reader.IsDBNull(6) ? Decimal.Zero : reader.GetDecimal(6);
-            int rep = reader.IsDBNull(7) ? Int32.MinValue : reader.GetInt32(7);
-            string permission = reader.IsDBNull(7) ? String.Empty : reader.GetString(7);
+            CDKData cdkData = null;
+            var con = CreateConnection();
 
-            return new CDKData(reader.GetString(0), items,
-                amount, vehicle,
-                exp, money,
-                rep, permission, reader.GetInt32(9),
-                reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11), reader.GetBoolean(13));
-        }
-
-        private LogData BuildLogData(MySqlDataReader reader)
-        {
-            return new LogData(reader.GetString(0), reader.GetUInt64(1), reader.GetDateTime(2),
-                reader.GetDateTime(3), Convert.ToString(reader[4]), reader.GetBoolean(5));
-        }
-
-        public CDKData GetCDKData(string cdk)
-        {
-            CDKData data = null;
-            MySqlConnection connection = CreateConnection();
             try
             {
-                MySqlCommand command = connection.CreateCommand();
-                command.Parameters.AddWithValue("@CDK", cdk);
-                command.CommandText =
-                    $"SELECT * from `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` where `CDK` = @CDK;";
-                connection.Open();
-                MySqlDataReader reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    data = BuildCDKData(reader);
-                }
+                cdkData = con.QuerySingle<CDKData>(
+                    $"SELECT * from `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` where `CDK` = @CDK;",
+                    new { CDK = key });
             }
             catch (Exception ex)
             {
-                Logger.LogError("[Error] GetCDKData:");
                 Logger.LogException(ex);
             }
             finally
             {
-                connection.Close();
+                con.Close();
             }
 
-            return data;
+            return cdkData;
         }
 
-        public LogData GetLogData(CSteamID steamID, ELogQueryType type, string parameter = "")
+        public LogData GetLogData(ulong steamid, ELogQueryType type, string parameter = "")
         {
             LogData logData = null;
-            MySqlConnection connection = CreateConnection();
+            var con = CreateConnection();
             try
             {
-                MySqlCommand command = connection.CreateCommand();
                 switch (type)
                 {
                     case ELogQueryType.ByCDK:
-                        command.Parameters.AddWithValue("@steamid", steamID);
-                        command.Parameters.AddWithValue("@cdk", parameter);
-                        command.CommandText =
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` WHERE `SteamID` = @steamid AND `CDK` = @cdk;";
-                        break;
-                    case ELogQueryType.ByPermissionGroup:
-                        command.Parameters.AddWithValue("@steamid", steamID);
-                        command.Parameters.AddWithValue("@PermissionGroup", parameter);
-                        command.CommandText =
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` WHERE `SteamID` = @steamid AND `GrantPermissionGroup` = '@PermissionGroup';";
+                        logData = con.QuerySingle<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = '{steamid}' and`CDK` = '@CDK'",
+                            new { CDK = parameter });
                         break;
                     case ELogQueryType.ByTime:
-                        command.Parameters.AddWithValue("@steamid", steamID);
-                        command.CommandText =
-                            $"select * from `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @steamid  and `ValidUntil` < now() LIMIT 1;";
+                        logData = con.QuerySingle<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = '{steamid}' and ValidUtil < now()");
+                        break;
+                    case ELogQueryType.ByPermissionGroup:
+                        logData = con.QuerySingle<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` WHERE `SteamID` = '{steamid}' and`GrantPermissionGroup` = '@permission'",
+                            new { permission = parameter });
                         break;
                 }
-
-                connection.Open();
-                MySqlDataReader reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    logData = BuildLogData(reader);
-                }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Logger.LogError("[Error] GetLogData");
-                Logger.LogException(ex);
+                Logger.LogException(e);
             }
             finally
             {
-                connection.Close();
+                con.Close();
             }
 
             return logData;
@@ -397,7 +355,7 @@ namespace CDK
             var CdkData = GetCDKData(CDK);
             if (CdkData != null)
             {
-                var log = GetLogData(player.CSteamID, ELogQueryType.ByPermissionGroup, CdkData.GrantPermissionGroup);
+                var log = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByPermissionGroup, CdkData.GrantPermissionGroup);
                 if (log != null)
                 {
                     result = true;
