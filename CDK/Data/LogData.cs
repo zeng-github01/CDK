@@ -10,14 +10,14 @@ namespace CDK.Data
     public class LogData
     {
         public string CDK { get; internal set; }
-        public CSteamID SteamID { get; internal set; }
+        public ulong SteamID { get; internal set; }
         public DateTime RedeemTime { get; internal set; }
         public DateTime ValidUntil { get; internal set; }
         public string GrantPermissionGroup { get; internal set; }
 
         public bool UsePermissionSync { get; internal set; }
 
-        public LogData(string cdk,CSteamID steamID, DateTime redeemtime, DateTime validtime, string PermissionGroup, bool usePermissionSync)
+        public LogData(string cdk,ulong steamID, DateTime redeemtime, DateTime validtime, string PermissionGroup, bool usePermissionSync)
         {
             CDK = cdk;
             SteamID = steamID;

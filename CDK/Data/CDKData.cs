@@ -23,10 +23,10 @@ namespace CDK.Data
         public int? MaxRedeem { get; internal set; }
         public DateTime ValidUntil { get; internal set; }
         public bool Renew { get; internal set; }
-        public CSteamID Owner { get; internal set; }
+        public ulong Owner { get; internal set; }
 
         public bool UsePermissionSync { get; internal set; }
-        public CDKData(string cdk,string items, string amount, ushort? vehicle, ushort? exp, decimal? money, int? reputation, string permissonGroup, int redeemedTimes, int? maxredeem, DateTime validuntill, CSteamID steamID, bool renew, bool usePermissionSync)
+        public CDKData(string cdk,string items, string amount, ushort? vehicle, ushort? exp, decimal? money, int? reputation, string permissonGroup, int redeemedTimes, int? maxredeem, DateTime validuntill, ulong steamID, bool renew, bool usePermissionSync)
         {
             CDK = cdk;
             Items = items.Split(',');

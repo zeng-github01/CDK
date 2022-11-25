@@ -78,7 +78,7 @@ namespace CDK
                 var logdata = GetLogData(player.CSteamID, ELogQueryType.ByCDK, CDK);
                 if (cdkdata != null)
                 {
-                    if (cdkdata.Owner != CSteamID.Nil && cdkdata.Owner != player.CSteamID)
+                    if (cdkdata.Owner != 0 && cdkdata.Owner != player.CSteamID.m_SteamID)
                     {
                         return RedeemCDKResult.PlayerNotMatch;
                     }
@@ -184,7 +184,7 @@ namespace CDK
                             });
                         }
 
-                        SaveLogToDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil,
+                        SaveLogToDB(new LogData(CDK, player.CSteamID.m_SteamID, DateTime.Now, cdkdata.ValidUntil,
                             cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
                         IncreaseRedeemedTime(CDK);
                         return RedeemCDKResult.Success;
@@ -195,7 +195,7 @@ namespace CDK
                         if (!cdkdata.UsePermissionSync)
                         {
                             R.Permissions.AddPlayerToGroup(cdkdata.GrantPermissionGroup, player);
-                            UpdateLogInDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil,
+                            UpdateLogInDB(new LogData(CDK, player.CSteamID.m_SteamID, DateTime.Now, cdkdata.ValidUntil,
                                 cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
                             UpdateRenew(CDK);
                             return RedeemCDKResult.Renewed;
@@ -210,7 +210,7 @@ namespace CDK
                                         cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
                                 }
                             });
-                            UpdateLogInDB(new LogData(CDK, player.CSteamID, DateTime.Now, cdkdata.ValidUntil,
+                            UpdateLogInDB(new LogData(CDK, player.CSteamID.m_SteamID, DateTime.Now, cdkdata.ValidUntil,
                                 cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
                             UpdateRenew(CDK);
                             return RedeemCDKResult.Renewed;
@@ -247,18 +247,25 @@ namespace CDK
 
         private CDKData BuildCDKData(MySqlDataReader reader)
         {
-            CSteamID owner = reader.IsDBNull(12) ? CSteamID.Nil : new CSteamID(reader.GetUInt64(12));
+            ulong owner = reader.IsDBNull(12) ? UInt64.MinValue : reader.GetUInt64(12);
+            string items = reader.IsDBNull(1) ? String.Empty : reader.GetString(1);
+            string amount = reader.IsDBNull(2) ? String.Empty : reader.GetString(2);
+            ushort vehicle = reader.IsDBNull(2) ? UInt16.MinValue : reader.GetUInt16(2);
+            ushort exp = reader.IsDBNull(4) ? UInt16.MinValue : reader.GetUInt16(4);
+            decimal money = reader.IsDBNull(6) ? Decimal.Zero : reader.GetDecimal(6);
+            int rep = reader.IsDBNull(7) ? Int32.MinValue : reader.GetInt32(7);
+            string permission = reader.IsDBNull(7) ? String.Empty : reader.GetString(7);
 
-            return new CDKData(reader.GetString(0), Convert.ToString(reader["Items"]),
-                Convert.ToString(reader["Amount"]), Convert.ToUInt16(reader["Vehicle"]),
-                Convert.ToUInt16(reader["Experience"]), Convert.ToDecimal(reader["Money"]),
-                Convert.ToInt32(reader["Reputation"]), Convert.ToString(reader[7]), reader.GetInt32(9),
+            return new CDKData(reader.GetString(0), items,
+                amount, vehicle,
+                exp, money,
+                rep, permission, reader.GetInt32(9),
                 reader.GetInt32(8), reader.GetDateTime(10), owner, reader.GetBoolean(11), reader.GetBoolean(13));
         }
 
         private LogData BuildLogData(MySqlDataReader reader)
         {
-            return new LogData(reader.GetString(0), new CSteamID(Convert.ToUInt64(reader[1])), reader.GetDateTime(2),
+            return new LogData(reader.GetString(0), reader.GetUInt64(1), reader.GetDateTime(2),
                 reader.GetDateTime(3), Convert.ToString(reader[4]), reader.GetBoolean(5));
         }
 
