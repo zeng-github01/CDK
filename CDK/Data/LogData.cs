@@ -26,5 +26,7 @@ namespace CDK.Data
             GrantPermissionGroup = PermissionGroup;
             UsePermissionSync = usePermissionSync;
         }
+
+        public LogData() { }
     }
 }

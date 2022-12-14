@@ -10,27 +10,27 @@ namespace CDK.Data
     public class CDKData
     {
         public string CDK { get; internal set; }
-        public string[] Items { get; internal set; }
+        public string Items { get; internal set; }
         //public string Items { get; internal set; }
         //public string Amount { get; internal set; }
-        public string[] Amount { get; internal set; }
+        public string Amount { get; internal set; }
         public ushort? Vehicle { get; internal set; }
         public ushort? Experience { get; internal set; }
         public decimal? Money { get; internal set; }
         public int? Reputation { get; internal set; }
         public string GrantPermissionGroup { get; internal set; }
         public int RedeemedTimes { get; internal set; }
-        public int? MaxRedeem { get; internal set; }
+        public int MaxRedeem { get; internal set; }
         public DateTime ValidUntil { get; internal set; }
         public bool Renew { get; internal set; }
         public ulong Owner { get; internal set; }
 
         public bool UsePermissionSync { get; internal set; }
-        public CDKData(string cdk,string items, string amount, ushort? vehicle, ushort? exp, decimal? money, int? reputation, string permissonGroup, int redeemedTimes, int? maxredeem, DateTime validuntill, ulong steamID, bool renew, bool usePermissionSync)
+        public CDKData(string cdk, string items, string amount, ushort? vehicle, ushort? exp, decimal? money, int? reputation, string permissonGroup, int redeemedTimes, int maxredeem, DateTime validuntill, ulong steamID, bool renew, bool usePermissionSync)
         {
             CDK = cdk;
-            Items = items.Split(',');
-            Amount = amount.Split(',');
+            Items = items;
+            Amount = amount;
             Vehicle = vehicle;
             Experience = exp;
             Money = money;
@@ -44,5 +44,6 @@ namespace CDK.Data
             UsePermissionSync = usePermissionSync;
         }
 
+        public CDKData() { }
     }
 }

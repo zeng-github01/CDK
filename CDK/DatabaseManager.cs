@@ -40,15 +40,21 @@ namespace CDK
 
         private bool KeyVailed(CDKData cdk)
         {
-            if (cdk.Items.Length != 0 && cdk.Amount.Length != 0)
+            if(cdk.Amount == string.Empty && cdk.Items != string.Empty)
             {
-                if (cdk.Items.Length != cdk.Amount.Length)
+                return true;
+            }
+            List<string> listitem = cdk.Items.Split(',').ToList();
+            List<string> listamount = cdk.Amount.Split(',').ToList();
+            if (listitem.Count != 0 && listamount.Count != 0)
+            {
+                if (listitem.Count != listamount.Count)
                 {
                     Logger.LogError(String.Format("CDK:{0} Items and Amount Column length not equal! ", cdk.CDK));
                     return false;
                 }
 
-                for (int i = 0; i < cdk.Items.Length; i++)
+                for (int i = 0; i < listitem.Count; i++)
                 {
                     if (!ushort.TryParse(cdk.Items[i].ToString(), out ushort id))
                     {
@@ -57,7 +63,7 @@ namespace CDK
                     }
                 }
 
-                for (int i = 0; i < cdk.Amount.Length; i++)
+                for (int i = 0; i < listamount.Count; i++)
                 {
                     if (!byte.TryParse(cdk.Amount[i].ToString(), out byte am))
                     {
@@ -67,7 +73,7 @@ namespace CDK
                 }
             }
 
-            return true;
+            return false;
         }
 
         public RedeemCDKResult RedeemCDK(UnturnedPlayer player, string CDK)
@@ -78,12 +84,14 @@ namespace CDK
                 var logdata = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByCDK, CDK);
                 if (cdkdata != null)
                 {
+                    List<string> listItem = cdkdata.Items.Split(',').ToList();
+                    List<string> listAmount = cdkdata.Amount.Split(',').ToList();
                     if (cdkdata.Owner != 0 && cdkdata.Owner != player.CSteamID.m_SteamID)
                     {
                         return RedeemCDKResult.PlayerNotMatch;
                     }
 
-                    if (cdkdata.MaxRedeem.HasValue && cdkdata.RedeemedTimes >= cdkdata.MaxRedeem.Value)
+                    if (cdkdata.RedeemedTimes >= cdkdata.MaxRedeem)
                     {
                         return RedeemCDKResult.MaxRedeemed;
                     }
@@ -101,22 +109,20 @@ namespace CDK
 
                         //else
                         //{
-                        if (cdkdata.Items.Length != 0 && cdkdata.Amount.Length == 0)
+                        if (listItem.Count != 0 && listAmount.Count == 0)
                         {
-                            var items = cdkdata.Items;
-                            for (int i = 0; i < items.Length; i++)
+                            for (int i = 0; i < listItem.Count; i++)
                             {
-                                player.GiveItem(ushort.Parse(items[i]), 1);
+                                player.GiveItem(ushort.Parse(listItem[i]), 1);
                             }
                         }
                         else if (cdkdata.Items.Length != 0 && cdkdata.Amount.Length != 0)
                         {
-                            var items = cdkdata.Items;
-                            var amount = cdkdata.Amount;
+                           
 
-                            for (int i = 0; i < amount.Length; i++)
+                            for (int i = 0; i < listAmount.Count; i++)
                             {
-                                if (!player.GiveItem(Convert.ToUInt16(items[i]), Convert.ToByte(amount[i])))
+                                if (!player.GiveItem(Convert.ToUInt16(listItem[i]), Convert.ToByte(listAmount[i])))
                                 {
                                     UnturnedChat.Say(player, Main.Instance.Translate("items_give_fail"),
                                         UnityEngine.Color.red);
@@ -124,22 +130,22 @@ namespace CDK
                             }
                         }
 
-                        if (cdkdata.Vehicle != 0)
+                        if (cdkdata.Vehicle.HasValue)
                         {
                             player.GiveVehicle(cdkdata.Vehicle.Value);
                         }
 
-                        if (cdkdata.Reputation != 0)
+                        if (cdkdata.Reputation.HasValue)
                         {
                             player.Player.skills.askRep(cdkdata.Reputation.Value);
                         }
 
-                        if (cdkdata.Experience != 0)
+                        if (cdkdata.Experience.HasValue)
                         {
                             player.Experience += cdkdata.Experience.Value;
                         }
 
-                        if (cdkdata.Money != 0)
+                        if (cdkdata.Money.HasValue)
                         {
                             Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin uconomy) =>
                             {
@@ -253,9 +259,10 @@ namespace CDK
 
             try
             {
-                cdkData = con.QuerySingle<CDKData>(
-                    $"SELECT * from `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` where `CDK` = @CDK;",
-                    new { CDK = key });
+                var parameter = new DynamicParameters();
+                parameter.Add("@CDK", key);
+                cdkData = con.QueryFirstOrDefault<CDKData>(
+                    $"SELECT * from `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` where `CDK` = @CDK;", parameter);
             }
             catch (Exception ex)
             {
@@ -269,27 +276,29 @@ namespace CDK
             return cdkData;
         }
 
-        public LogData GetLogData(ulong steamid, ELogQueryType type, string parameter = "")
+        public LogData GetLogData(ulong steamid, ELogQueryType type, string keyword = "")
         {
             LogData logData = null;
             var con = CreateConnection();
             try
             {
+                var parameter = new DynamicParameters();
+                parameter.Add("@SteamID", steamid);
                 switch (type)
                 {
                     case ELogQueryType.ByCDK:
-                        logData = con.QuerySingle<LogData>(
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = '{steamid}' and`CDK` = '@CDK'",
-                            new { CDK = parameter });
+                        parameter.Add("@CDK", keyword);
+                        logData = con.QueryFirstOrDefault<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @SteamID and `CDK` = @CDK", parameter);
                         break;
                     case ELogQueryType.ByTime:
-                        logData = con.QuerySingle<LogData>(
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = '{steamid}' and ValidUtil < now()");
+                        logData = con.QueryFirstOrDefault<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @SteamID and ValidUntil < now()",parameter);
                         break;
                     case ELogQueryType.ByPermissionGroup:
-                        logData = con.QuerySingle<LogData>(
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` WHERE `SteamID` = '{steamid}' and`GrantPermissionGroup` = '@permission'",
-                            new { permission = parameter });
+                        parameter.Add("@permission", keyword);
+                        logData = con.QueryFirstOrDefault<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` WHERE `SteamID` = @SteamID and `GrantPermissionGroup` = @permission", parameter);
                         break;
                 }
             }
