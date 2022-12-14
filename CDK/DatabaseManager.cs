@@ -42,6 +42,15 @@ namespace CDK
         {
             if(cdk.Amount == string.Empty && cdk.Items != string.Empty)
             {
+                var list = cdk.Items.Split(',').ToList();
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (!ushort.TryParse(list[i], out ushort res))
+                    {
+                        Logger.LogError(String.Format("CDK:{0} has id in Items not a ushort!", cdk.CDK));
+                        return false;
+                    }
+                }
                 return true;
             }
             List<string> listitem = cdk.Items.Split(',').ToList();
@@ -56,7 +65,7 @@ namespace CDK
 
                 for (int i = 0; i < listitem.Count; i++)
                 {
-                    if (!ushort.TryParse(cdk.Items[i].ToString(), out ushort id))
+                    if (!ushort.TryParse(listitem[i], out ushort id))
                     {
                         Logger.LogError(String.Format("CDK:{0} has id in Items not a ushort!", cdk.CDK));
                         return false;
@@ -65,7 +74,7 @@ namespace CDK
 
                 for (int i = 0; i < listamount.Count; i++)
                 {
-                    if (!byte.TryParse(cdk.Amount[i].ToString(), out byte am))
+                    if (!byte.TryParse(listamount[i], out byte am))
                     {
                         Logger.LogError(String.Format("CDK:{0} has amount in Amount not a byte. MAX 255!", cdk.CDK));
                         return false;
