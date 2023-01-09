@@ -11,8 +11,6 @@ namespace CDK.Data
     {
         public string CDK { get; internal set; }
         public string Items { get; internal set; }
-        //public string Items { get; internal set; }
-        //public string Amount { get; internal set; }
         public string Amount { get; internal set; }
         public ushort? Vehicle { get; internal set; }
         public ushort? Experience { get; internal set; }

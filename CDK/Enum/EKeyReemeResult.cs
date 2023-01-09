@@ -6,7 +6,15 @@ using System.Threading.Tasks;
 
 namespace CDK.Enum
 {
-    public class EKeyReemeResult
+    public enum EKeyReemeResult
     {
+            Success,
+            Redeemed,
+            KeyNotFound,
+            MaxRedeemed,
+            Renewed,
+            Error,
+            PlayerNotMatch,
+            KeyNotValid
     }
 }
