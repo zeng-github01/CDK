@@ -274,6 +274,7 @@ namespace CDK
                         return false;
                     }
                 }
+                return true;
             }
 
             return false;
