@@ -136,6 +136,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="Data\LogData.cs" />
+    <Compile Include="Enum\EExecutePermissionMethod.cs" />
     <Compile Include="Enum\EKeyReemeResult.cs" />
     <Compile Include="Enum\ELogQueryType.cs" />
     <Compile Include="Main.cs" />

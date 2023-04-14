@@ -169,7 +169,7 @@ namespace CDK
                         }
                         else if (cdkdata.GrantPermissionGroup != string.Empty && cdkdata.UsePermissionSync)
                         {
-                            ExecutePermissionSync(player, cdkdata);
+                            ExecutePermissionSync(player, cdkdata,EExecutePermissionMethod.Add);
                         }
 
                         Database.SaveLogToDB(new LogData(CDK, player.CSteamID.m_SteamID, DateTime.Now, cdkdata.ValidUntil,
@@ -189,14 +189,7 @@ namespace CDK
                         }
                         else
                         {
-                            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
-                            {
-                                if (ps.State == PluginState.Loaded)
-                                {
-                                    PermissionSync.Main.Instance.databese.UpdatePermission(player,
-                                        cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
-                                }
-                            });
+                            ExecutePermissionSync(player, cdkdata, EExecutePermissionMethod.Update);
                             Database.UpdateLogInDB(new LogData(CDK, player.CSteamID.m_SteamID, DateTime.Now, cdkdata.ValidUntil,
                                 cdkdata.GrantPermissionGroup, cdkdata.UsePermissionSync));
                             Database.UpdateRenew(CDK);
@@ -279,16 +272,32 @@ namespace CDK
             });
         }
 
-        private void ExecutePermissionSync(UnturnedPlayer player, CDKData cdkdata)
+        private void ExecutePermissionSync(UnturnedPlayer player, CDKData cdkdata,EExecutePermissionMethod method)
         {
-            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
+            switch (method)
             {
-                if (ps.State == PluginState.Loaded)
-                {
-                    PermissionSync.Main.Instance.databese.AddPermission(Main.Instance.Name, player,
-                        cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
-                }
-            });
+                case EExecutePermissionMethod.Add:
+                    Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
+                    {
+                        if (ps.State == PluginState.Loaded)
+                        {
+                            PermissionSync.Main.Instance.databese.AddPermission(Main.Instance.Name, player,
+                                cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
+                        }
+                    });
+                    break;
+                case EExecutePermissionMethod.Update:
+                    Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
+                    {
+                        if (ps.State == PluginState.Loaded)
+                        {
+                            PermissionSync.Main.Instance.databese.UpdatePermission(player,
+                                cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
+                        }
+                    });
+                    break;
+
+            }
         }
     }
 }
