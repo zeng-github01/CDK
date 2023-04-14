@@ -67,7 +67,7 @@
     </Reference>
     <Reference Include="PermissionSync, Version=1.0.1.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\PermissionSync\PermissionSync\bin\Release\PermissionSync.dll</HintPath>
+      <HintPath>lib\PermissionSync.dll</HintPath>
     </Reference>
     <Reference Include="Rocket.API, Version=4.9.3.4, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

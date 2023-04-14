@@ -12,6 +12,7 @@ using CDK.Enum;
 using fr34kyn01535.Uconomy;
 using Rocket.Core;
 using Rocket.Core.Logging;
+using SDG.Unturned;
 
 namespace CDK
 {
@@ -144,16 +145,7 @@ namespace CDK
 
                         if (cdkdata.Money.HasValue)
                         {
-                            Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin uconomy) =>
-                            {
-                                if (uconomy.State == PluginState.Loaded)
-                                {
-                                    Uconomy.Instance.Database.IncreaseBalance(player.Id, cdkdata.Money.Value);
-                                    UnturnedChat.Say(player,
-                                        Main.Instance.Translate("uconomy_gain", cdkdata.Money.Value,
-                                            Uconomy.Instance.Configuration.Instance.MoneyName));
-                                }
-                            });
+                            ExecuteUconomy(player, cdkdata);
                         }
 
                         if (cdkdata.GrantPermissionGroup != string.Empty && !cdkdata.UsePermissionSync)
@@ -177,14 +169,7 @@ namespace CDK
                         }
                         else if (cdkdata.GrantPermissionGroup != string.Empty && cdkdata.UsePermissionSync)
                         {
-                            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
-                            {
-                                if (ps.State == PluginState.Loaded)
-                                {
-                                    PermissionSync.Main.Instance.databese.AddPermission("CDKPlugin", player,
-                                        cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
-                                }
-                            });
+                            ExecutePermissionSync(player, cdkdata);
                         }
 
                         Database.SaveLogToDB(new LogData(CDK, player.CSteamID.m_SteamID, DateTime.Now, cdkdata.ValidUntil,
@@ -278,6 +263,32 @@ namespace CDK
             }
 
             return false;
+        }
+
+        private void ExecuteUconomy(UnturnedPlayer player, CDKData cdkdata)
+        {
+            Main.ExecuteDependencyCode("Uconomy", (IRocketPlugin uconomy) =>
+            {
+                if (uconomy.State == PluginState.Loaded)
+                {
+                    Uconomy.Instance.Database.IncreaseBalance(player.Id, cdkdata.Money.Value);
+                    UnturnedChat.Say(player,
+                        Main.Instance.Translate("uconomy_gain", cdkdata.Money.Value,
+                            Uconomy.Instance.Configuration.Instance.MoneyName));
+                }
+            });
+        }
+
+        private void ExecutePermissionSync(UnturnedPlayer player, CDKData cdkdata)
+        {
+            Main.ExecuteDependencyCode("PermissionSync", (IRocketPlugin ps) =>
+            {
+                if (ps.State == PluginState.Loaded)
+                {
+                    PermissionSync.Main.Instance.databese.AddPermission(Main.Instance.Name, player,
+                        cdkdata.GrantPermissionGroup, cdkdata.ValidUntil.ToString());
+                }
+            });
         }
     }
 }
