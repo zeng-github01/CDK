@@ -292,7 +292,7 @@ namespace CDK
                         if (ps.State == PluginState.Loaded)
                         {
                             PermissionSync.Main.Instance.databese.UpdatePermission(player,
-                                cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, "CDKPlugin");
+                                cdkdata.GrantPermissionGroup, cdkdata.ValidUntil, Main.Instance.Name);
                         }
                     });
                     break;
