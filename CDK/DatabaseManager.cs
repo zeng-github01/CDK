@@ -30,16 +30,6 @@ namespace CDK
         internal void CheckValid(UnturnedPlayer player)
         {
             var logList = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
-            //if (logData != null && logData.GrantPermissionGroup != string.Empty && !logData.UsePermissionSync)
-            //{
-            //    do
-            //    {
-            //        CDKData cDKData = GetCDKData(logData.CDK);
-            //        R.Permissions.RemovePlayerFromGroup(cDKData.GrantPermissionGroup, player);
-            //        UnturnedChat.Say(player, Main.Instance.Translate("key_expired", logData.CDK));
-            //        logData = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
-            //    } while (logData == null);
-            //}
             foreach(LogData log in logList)
             {
                 if (log.GrantPermissionGroup != string.Empty && !log.UsePermissionSync)
@@ -164,15 +154,15 @@ namespace CDK
             var CdkData = GetCDKData(CDK);
             if (CdkData != null)
             {
-                var log = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByPermissionGroup, CdkData.GrantPermissionGroup);
-                if (log != null)
+                var logList = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByPermissionGroup, CdkData.GrantPermissionGroup);
+                if(logList.Count > 0)
                 {
                     result = true;
                 }
-                else
-                {
-                    result = false;
-                }
+                //foreach(LogData logData in logList)
+                //{
+
+                //}
             }
 
             return result;

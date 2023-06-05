@@ -162,7 +162,7 @@ namespace CDK
                                             cdkdata.GrantPermissionGroup), UnityEngine.Color.yellow);
                                     break;
                                 default:
-                                    UnturnedChat.Say(player, Main.Instance.Translate("permission_grant_error"),
+                                    UnturnedChat.Say(player, Main.Instance.Translate("permission_grant_error",cdkdata.GrantPermissionGroup),
                                         UnityEngine.Color.red);
                                     break;
                             }

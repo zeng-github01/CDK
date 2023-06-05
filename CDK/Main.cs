@@ -56,7 +56,7 @@ namespace CDK
                 {"already_redeemed","You already redeemed this CDK!" },
                 {"permission_duplicate_entry","You already in permission group:{0}." },
                 {"permission_granted","You are added permission group: {0}" },
-                {"permission_grant_error","Failed to add permission group" },
+                {"permission_grant_error","Failed to add permission group {0}" },
                 {"uconomy_gain","You got {0} {1}" },
                 {"error","error!" },
                 {"invaild_parameter","out of patamter! correct syntax:{0}"},
