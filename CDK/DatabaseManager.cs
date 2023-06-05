@@ -29,16 +29,25 @@ namespace CDK
 
         internal void CheckValid(UnturnedPlayer player)
         {
-            LogData logData = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
-            if (logData != null && logData.GrantPermissionGroup != string.Empty && !logData.UsePermissionSync)
+            var logList = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
+            //if (logData != null && logData.GrantPermissionGroup != string.Empty && !logData.UsePermissionSync)
+            //{
+            //    do
+            //    {
+            //        CDKData cDKData = GetCDKData(logData.CDK);
+            //        R.Permissions.RemovePlayerFromGroup(cDKData.GrantPermissionGroup, player);
+            //        UnturnedChat.Say(player, Main.Instance.Translate("key_expired", logData.CDK));
+            //        logData = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
+            //    } while (logData == null);
+            //}
+            foreach(LogData log in logList)
             {
-                do
+                if (log.GrantPermissionGroup != string.Empty && !log.UsePermissionSync)
                 {
-                    CDKData cDKData = GetCDKData(logData.CDK);
+                    CDKData cDKData = GetCDKData(log.CDK);
                     R.Permissions.RemovePlayerFromGroup(cDKData.GrantPermissionGroup, player);
-                    UnturnedChat.Say(player, Main.Instance.Translate("key_expired", logData.CDK));
-                    logData = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByTime);
-                } while (logData == null);
+                    UnturnedChat.Say(player, Main.Instance.Translate("key_expired", log.CDK));
+                }
             }
         }
 
@@ -67,9 +76,9 @@ namespace CDK
             return cdkData;
         }
 
-        public LogData GetLogData(ulong steamid, ELogQueryType type, string keyword = "")
+        public List<LogData> GetLogData(ulong steamid, ELogQueryType type, string keyword = "")
         {
-            LogData logData = null;
+            List<LogData> logDatas = new List<LogData>();
             var con = CreateConnection();
             try
             {
@@ -79,17 +88,17 @@ namespace CDK
                 {
                     case ELogQueryType.ByCDK:
                         parameter.Add("@CDK", keyword);
-                        logData = con.QueryFirstOrDefault<LogData>(
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @SteamID and `CDK` = @CDK", parameter);
+                        logDatas = con.Query<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @SteamID and `CDK` = @CDK", parameter).AsList();
                         break;
                     case ELogQueryType.ByTime:
-                        logData = con.QueryFirstOrDefault<LogData>(
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @SteamID and ValidUntil < now()",parameter);
+                        logDatas = con.Query<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` where `SteamID` = @SteamID and ValidUntil < now()",parameter).AsList();
                         break;
                     case ELogQueryType.ByPermissionGroup:
                         parameter.Add("@permission", keyword);
-                        logData = con.QueryFirstOrDefault<LogData>(
-                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` WHERE `SteamID` = @SteamID and `GrantPermissionGroup` = @permission", parameter);
+                        logDatas = con.Query<LogData>(
+                            $"SELECT * FROM `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` WHERE `SteamID` = @SteamID and `GrantPermissionGroup` = @permission", parameter).AsList();
                         break;
                 }
             }
@@ -102,7 +111,7 @@ namespace CDK
                 con.Close();
             }
 
-            return logData;
+            return logDatas;
         }
 
         internal void SaveLogToDB(LogData logData)

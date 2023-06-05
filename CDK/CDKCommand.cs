@@ -96,11 +96,11 @@ namespace CDK
                         return EKeyReemeResult.MaxRedeemed;
                     }
 
-                    if (logdata != null && !cdkdata.Renew)
+                    if (logdata.Count > 0 && !cdkdata.Renew)
                     {
                         return EKeyReemeResult.Redeemed;
                     }
-                    else if (logdata == null)
+                    else if (logdata.Count == 0)
                     {
                         if (!KeyVailed(cdkdata))
                         {
@@ -177,7 +177,7 @@ namespace CDK
                         Database.IncreaseRedeemedTime(CDK);
                         return EKeyReemeResult.Success;
                     }
-                    else if (logdata != null && cdkdata.Renew)
+                    else if (logdata.Count > 0 && cdkdata.Renew)
                     {
                         if (!cdkdata.UsePermissionSync)
                         {
