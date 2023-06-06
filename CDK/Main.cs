@@ -80,7 +80,9 @@ namespace CDK
             Version crv = Assembly.GetName().Version;
             if(version > crv)
             {
+                var changelog = json["body"].ToString();
                 Rocket.Core.Logging.Logger.Log(String.Format("New Update {0} has been released",version.ToString()),ConsoleColor.Green);
+                Rocket.Core.Logging.Logger.LogWarning(String.Format("Changelog: {0}",changelog));
                 Rocket.Core.Logging.Logger.LogWarning($"{Name} has been unload");
                 Rocket.Core.Logging.Logger.Log("Go to " + "https://github.com/zeng-github01/CDKey-CodeReward/releases/latest "+"to get latest update", ConsoleColor.Yellow);
             }
