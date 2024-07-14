@@ -130,9 +130,21 @@ namespace CDK
                             }
                         }
 
-                        if (cdkdata.Vehicle.HasValue)
+                        if (ushort.TryParse(cdkdata.Vehicle, out ushort vehicleID)) 
                         {
-                            player.GiveVehicle(cdkdata.Vehicle.Value);
+                            player.GiveVehicle(vehicleID);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                var asset = Assets.find(Guid.Parse(cdkdata.Vehicle));
+                                VehicleTool.SpawnVehicleForPlayer(player.Player, asset);
+                            }
+                            catch (Exception e) 
+                            {
+                                Logger.LogException(e);
+                            }
                         }
 
                         if (cdkdata.Reputation.HasValue)
