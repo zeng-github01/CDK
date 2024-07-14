@@ -63,7 +63,7 @@ namespace CDK
                 {"key_renewed","Your key has been renewed!" },
                 {"key_expired","Your key has been expired:{0}" },
                 {"already_purchased","You already purchased this permission group" },
-                {"invaild_param","Wrong usage.usage:{0}"},
+                {"invalid_param","Wrong usage.usage:{0}"},
                 {"player_not_match","This CDK not belong to you!" },
                 {"cdk_config_error","CDK configuration error.please contact server owner!" }
             };

@@ -20,6 +20,7 @@ namespace CDK
         public string DatabaseCDKTableName;
         public string DatabaseRedeemLogTableName;
         public int DatabasePort;
+        public bool EnableRichText;
 
         public void LoadDefaults()
         {
@@ -33,6 +34,7 @@ namespace CDK
             DatabaseCDKTableName = "cdk";
             DatabaseRedeemLogTableName = "redeemedlog";
             DatabasePort = 3306;
+            EnableRichText = false;
             //CDKs = new List<CDK>() { new CDK() { Key = "Key", Items = "100,1000,1500",XP = 111 , RedeemPermission = "Test",GrantPermissionGroup="VIP1" ,MaxCount = 100,CurrentCount = 0,Vehicle = 1,Money = 1000 } };  
         }
     }

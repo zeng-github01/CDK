@@ -32,6 +32,7 @@ namespace CDK
 
         public void Execute(IRocketPlayer caller,string[] args)
         {
+            var isRich = Main.Instance.Configuration.Instance.EnableRichText;
             if(args.Length == 1)
               {
                 if (!Main.Instance.Database.IsPurchased(UnturnedPlayer.FromName(caller.DisplayName), args[0]))
@@ -39,44 +40,45 @@ namespace CDK
                     switch (RedeemCDK(UnturnedPlayer.FromName(caller.DisplayName), args[0]))
                     {
                         case EKeyReemeResult.Success:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("success"));
+                            UnturnedChat.Say(caller, Main.Instance.Translate("success"), isRich);
                             break;
                         case EKeyReemeResult.Redeemed:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("already_redeemed"), UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, Main.Instance.Translate("already_redeemed"), UnityEngine.Color.red, isRich);
                             break;
                         case EKeyReemeResult.KeyNotFound:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("key_dones't_exist"), UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, Main.Instance.Translate("key_dones't_exist"), UnityEngine.Color.red, isRich);
                             break;
                         case EKeyReemeResult.MaxRedeemed:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("maxcount_reached"), UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, Main.Instance.Translate("maxcount_reached"), UnityEngine.Color.red, isRich);
                             break;
                         case EKeyReemeResult.Renewed:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("key_renewed"));
+                            UnturnedChat.Say(caller, Main.Instance.Translate("key_renewed"), isRich);
                             break;
                         case EKeyReemeResult.Error:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("error"), UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, Main.Instance.Translate("error"), UnityEngine.Color.red, isRich);
                             break;
                         case EKeyReemeResult.PlayerNotMatch:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("player_not_match"), UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, Main.Instance.Translate("player_not_match"), UnityEngine.Color.red, isRich);
                             break;
                         case EKeyReemeResult.KeyNotValid:
-                            UnturnedChat.Say(caller, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red);
+                            UnturnedChat.Say(caller, Main.Instance.Translate("cdk_config_error"), UnityEngine.Color.red, isRich);
                             break;
                     }
                 }
                 else
                 {
-                    UnturnedChat.Say(caller, Main.Instance.Translate("already_purchased"), UnityEngine.Color.red);
+                    UnturnedChat.Say(caller, Main.Instance.Translate("already_purchased"), UnityEngine.Color.red, isRich);
                 }
              }
             else
             {
-                UnturnedChat.Say(caller, Main.Instance.Translate("invaild_param",Syntax), UnityEngine.Color.red);
+                UnturnedChat.Say(caller, Main.Instance.Translate("invalid_param",Syntax), UnityEngine.Color.red, isRich);
             }
         }
 
         private EKeyReemeResult RedeemCDK(UnturnedPlayer player, string CDK)
         {
+            var isRich = Main.Instance.Configuration.Instance.EnableRichText;
             var Database = Main.Instance.Database;
             try
             {
@@ -123,7 +125,7 @@ namespace CDK
                                 if (!player.GiveItem(Convert.ToUInt16(listItem[i]), Convert.ToByte(listAmount[i])))
                                 {
                                     UnturnedChat.Say(player, Main.Instance.Translate("items_give_fail"),
-                                        UnityEngine.Color.red);
+                                        UnityEngine.Color.red, isRich);
                                 }
                             }
                         }
@@ -154,16 +156,16 @@ namespace CDK
                             {
                                 case Rocket.API.RocketPermissionsProviderResult.Success:
                                     UnturnedChat.Say(player,
-                                        Main.Instance.Translate("permission_granted", cdkdata.GrantPermissionGroup));
+                                        Main.Instance.Translate("permission_granted", cdkdata.GrantPermissionGroup), isRich);
                                     break;
                                 case Rocket.API.RocketPermissionsProviderResult.DuplicateEntry:
                                     UnturnedChat.Say(player,
                                         Main.Instance.Translate("permission_duplicate_entry",
-                                            cdkdata.GrantPermissionGroup), UnityEngine.Color.yellow);
+                                            cdkdata.GrantPermissionGroup), UnityEngine.Color.yellow, isRich);
                                     break;
                                 default:
                                     UnturnedChat.Say(player, Main.Instance.Translate("permission_grant_error",cdkdata.GrantPermissionGroup),
-                                        UnityEngine.Color.red);
+                                        UnityEngine.Color.red, isRich);
                                     break;
                             }
                         }
