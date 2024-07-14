@@ -152,17 +152,13 @@ namespace CDK
         {
             bool result = false;
             var CdkData = GetCDKData(CDK);
-            if (CdkData != null)
+            if (CdkData != null && !string.IsNullOrEmpty(CdkData.GrantPermissionGroup))
             {
                 var logList = GetLogData(player.CSteamID.m_SteamID, ELogQueryType.ByPermissionGroup, CdkData.GrantPermissionGroup);
                 if(logList.Count > 0)
                 {
                     result = true;
                 }
-                //foreach(LogData logData in logList)
-                //{
-
-                //}
             }
 
             return result;
