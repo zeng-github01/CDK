@@ -13,7 +13,7 @@ namespace CDK.Data
         public string Items { get; internal set; }
         public string Amount { get; internal set; }
         public string Vehicle { get; internal set; }
-        public ushort? Experience { get; internal set; }
+        public uint? Experience { get; internal set; }
         public decimal? Money { get; internal set; }
         public int? Reputation { get; internal set; }
         public string GrantPermissionGroup { get; internal set; }

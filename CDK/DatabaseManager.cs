@@ -36,7 +36,7 @@ namespace CDK
                 {
                     CDKData cDKData = GetCDKData(log.CDK);
                     R.Permissions.RemovePlayerFromGroup(cDKData.GrantPermissionGroup, player);
-                    UnturnedChat.Say(player, Main.Instance.Translate("key_expired", log.CDK));
+                    UnturnedChat.Say(player, Main.Instance.Translate("key_expired", log.CDK), Main.Instance.Configuration.Instance.EnableRichText);
                 }
             }
         }
@@ -223,7 +223,7 @@ namespace CDK
             {
                 ExecuteQuery(true,
                     $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseRedeemLogTableName}` ADD foreign key(`CDK`) references {Main.Instance.Configuration.Instance.DatabaseCDKTableName}(`CDK`) on DELETE cascade on update cascade ");
-                Main.Instance.Configuration.Instance.MySQLTableVer = 5;
+                Main.Instance.Configuration.Instance.MySQLTableVer++;
                 Main.Instance.Configuration.Save();
             }
 
@@ -231,6 +231,14 @@ namespace CDK
             {
                 ExecuteQuery(true,
                     $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Vehicle` VARCHAR(128)");
+                Main.Instance.Configuration.Instance.MySQLTableVer++;
+                Main.Instance.Configuration.Save();
+            }
+
+            if(Main.Instance.Configuration.Instance.MySQLTableVer == 6)
+            {
+                ExecuteQuery(true,
+                    $"ALTER TABLE `{Main.Instance.Configuration.Instance.DatabaseCDKTableName}` MODIFY `Experience` INT(32) UNSIGNED");
                 Main.Instance.Configuration.Instance.MySQLTableVer++;
                 Main.Instance.Configuration.Save();
             }

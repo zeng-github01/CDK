@@ -281,7 +281,7 @@ namespace CDK
                     Uconomy.Instance.Database.IncreaseBalance(player.Id, cdkdata.Money.Value);
                     UnturnedChat.Say(player,
                         Main.Instance.Translate("uconomy_gain", cdkdata.Money.Value,
-                            Uconomy.Instance.Configuration.Instance.MoneyName));
+                            Uconomy.Instance.Configuration.Instance.MoneyName), Main.Instance.Configuration.Instance.EnableRichText);
                 }
             });
         }
