@@ -17,6 +17,7 @@ using fr34kyn01535.Uconomy;
 using System.IO;
 using Rocket.Core.Logging;
 using Newtonsoft.Json.Linq;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace CDK
 {
@@ -70,21 +71,27 @@ namespace CDK
 
         private void CheckUpdate()
         {
-            
-            string dlstring = "https://api.github.com/repos/zeng-github01/CDKey-CodeReward/releases/latest";
-            WebClient webClient = new WebClient();
-            webClient.Headers.Add("user-agent",USER_AGENT);
-             string jsonstring =  webClient.DownloadString(dlstring);
-              var json = JObject.Parse(jsonstring);
-            Version version = new Version(json["tag_name"].ToString());
-            Version crv = Assembly.GetName().Version;
-            if(version > crv)
+            try
             {
-                var changelog = json["body"].ToString();
-                Rocket.Core.Logging.Logger.Log(String.Format("New Update {0} has been released",version.ToString()),ConsoleColor.Green);
-                Rocket.Core.Logging.Logger.LogWarning(String.Format("Changelog: {0}",changelog));
-                Rocket.Core.Logging.Logger.LogWarning($"{Name} has been unload");
-                Rocket.Core.Logging.Logger.Log("Go to " + "https://github.com/zeng-github01/CDKey-CodeReward/releases/latest "+"to get latest update", ConsoleColor.Yellow);
+                string dlstring = "https://api.github.com/repos/zeng-github01/CDKey-CodeReward/releases/latest";
+                WebClient webClient = new WebClient();
+                webClient.Headers.Add("user-agent", USER_AGENT);
+                string jsonstring = webClient.DownloadString(dlstring);
+                var json = JObject.Parse(jsonstring);
+                Version version = new Version(json["tag_name"].ToString());
+                Version crv = Assembly.GetName().Version;
+                if (version > crv)
+                {
+                    var changelog = json["body"].ToString();
+                    Logger.Log(String.Format("New Update {0} has been released", version.ToString()), ConsoleColor.Green);
+                    Logger.LogWarning(String.Format("Changelog: {0}", changelog));
+                    Logger.LogWarning($"{Name} has been unload");
+                    Logger.Log("Go to " + "https://github.com/zeng-github01/CDKey-CodeReward/releases/latest " + "to get latest update", ConsoleColor.Yellow);
+                }
+            }
+            catch (WebException ex)
+            {
+                Logger.LogException(ex, ex.Message);
             }
         }
     }

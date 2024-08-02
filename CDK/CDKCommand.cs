@@ -232,6 +232,44 @@ namespace CDK
 
         private bool KeyVailed(CDKData cdk)
         {
+            if (Main.Instance.Configuration.Instance.ByPassKeyVailed)
+            {
+                return true;
+            }
+
+            // 密钥验证逻辑
+            // 首先判断载具栏是否为空字符串，如果不是，则尝试解析GUID 如果是空GUID则为无效KEY，反之尝试用尼尔森接口解析GUID，如果GUID无效，则视为无效KET
+            // 然后尝试解析数字ID，如果不是数字ID，则视为无效KEY
+            // 物品字符串验证逻辑为将物品字符串使用英文逗号分割，检查分割后的列表，如果存在非数字值，则视为无效KEY
+            // 数量字符串验证逻辑为，将字符串使用英文逗号分割，如果物品和数量的长度不同，则视为无效KEY
+            // 除此之外验证数量是否为无效值，例如超出最大值，或非数字
+            if (!string.IsNullOrEmpty(cdk.Vehicle))
+            {
+                if (Guid.TryParse(cdk.Vehicle, out Guid result))
+                {
+                    if (result == Guid.Empty)
+                    {
+                        Logger.LogError(string.Format("can't use a empty GUID in CDK:{0}", cdk.CDK));
+                        return false;
+                    }
+
+                    var gid = Assets.find(result);
+                    if (gid == null)
+                    {
+                        Logger.LogError(string.Format("CDK: {0} use an invailed vehicle GUID",cdk.CDK));
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!ushort.TryParse(cdk.Vehicle,out ushort vehicleID))
+                    {
+                        Logger.LogError(string.Format("CDK: {0} use an invailed vehicle id", cdk.CDK));
+                        return false;
+                    }
+                }
+            }
+
             if (cdk.Amount == string.Empty && cdk.Items != string.Empty)
             {
                 var list = cdk.Items.Split(',').ToList();
@@ -243,39 +281,41 @@ namespace CDK
                         return false;
                     }
                 }
-                return true;
             }
-            List<string> listitem = cdk.Items.Split(',').ToList();
-            List<string> listamount = cdk.Amount.Split(',').ToList();
-            if (listitem.Count != 0 && listamount.Count != 0)
+            
+            if (cdk.Amount != string.Empty && cdk.Items != string.Empty)
             {
-                if (listitem.Count != listamount.Count)
+                List<string> listitem = cdk.Items.Split(',').ToList();
+                List<string> listamount = cdk.Amount.Split(',').ToList();
+                if (listitem.Count != 0 && listamount.Count != 0)
                 {
-                    Logger.LogError(String.Format("CDK:{0} Items and Amount Column length not equal! ", cdk.CDK));
-                    return false;
-                }
-
-                for (int i = 0; i < listitem.Count; i++)
-                {
-                    if (!ushort.TryParse(listitem[i], out ushort id))
+                    if (listitem.Count != listamount.Count)
                     {
-                        Logger.LogError(String.Format("CDK:{0} has id in Items not a ushort!", cdk.CDK));
+                        Logger.LogError(String.Format("CDK:{0} Items and Amount Column length not equal! ", cdk.CDK));
                         return false;
                     }
-                }
 
-                for (int i = 0; i < listamount.Count; i++)
-                {
-                    if (!byte.TryParse(listamount[i], out byte am))
+                    for (int i = 0; i < listitem.Count; i++)
                     {
-                        Logger.LogError(String.Format("CDK:{0} has amount in Amount not a byte. MAX 255!", cdk.CDK));
-                        return false;
+                        if (!ushort.TryParse(listitem[i], out ushort id))
+                        {
+                            Logger.LogError(String.Format("CDK:{0} has id in Items not a ushort!", cdk.CDK));
+                            return false;
+                        }
+                    }
+
+                    for (int i = 0; i < listamount.Count; i++)
+                    {
+                        if (!byte.TryParse(listamount[i], out byte am))
+                        {
+                            Logger.LogError(String.Format("CDK:{0} has amount in Amount not a byte. MAX 255!", cdk.CDK));
+                            return false;
+                        }
                     }
                 }
-                return true;
             }
 
-            return false;
+            return true;
         }
 
         private void ExecuteUconomy(UnturnedPlayer player, CDKData cdkdata)
